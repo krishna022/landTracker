@@ -73,3 +73,52 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Project specific
+uploads/
+dist/
+.expo/
+.expo-shared/
+
+# Backend specific (if added later)
+*.sqlite
+*.sqlite3
+*.db
+
+# Android specific
+android/app/google-services.json
+android/key.properties
+android/app/upload-keystore.jks
+android/app/my-upload-key.keystore
+android/app/release-key.keystore
+android/keystores/
+
+# iOS specific
+ios/GoogleService-Info.plist
+ios/main.jsbundle
+ios/main.jsbundle.map
+
+# React Native Debugger
+rn-cli.config.js
+
+# ESLint cache
+.eslintcache
