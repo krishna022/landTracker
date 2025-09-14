@@ -138,8 +138,11 @@ const handleApiResponse = <T>(response: AxiosResponse<ApiResponse<T>>): T => {
 
 // Helper function to handle API errors
 const handleApiError = (error: any): never => {
-  if (error.response?.data?.message) {
-    throw new Error(error.response.data.message);
+  if (error.response?.data) {
+    // Preserve the original error response data
+    const errorObj = new Error(error.response.data.message || 'API request failed');
+    (errorObj as any).response = error.response;
+    throw errorObj;
   } else if (error.message) {
     throw new Error(error.message);
   } else {
@@ -235,6 +238,52 @@ class ApiService {
       
       const response = await api.post('/auth/refresh-token', {
         refreshToken: currentRefreshToken
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  async verifyEmail(email: string, verificationCode: string) {
+    try {
+      const response = await api.post('/auth/verify-email', {
+        email,
+        verificationCode
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  async resendVerificationCode(email: string) {
+    try {
+      const response = await api.post('/auth/resend-verification', {
+        email
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  async setupPin(pin: string, biometricEnabled: boolean = false) {
+    try {
+      const response = await api.post('/auth/setup-pin', {
+        pin,
+        biometricEnabled
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  async validatePin(pin: string) {
+    try {
+      const response = await api.post('/auth/validate-pin', {
+        pin
       });
       return handleApiResponse(response);
     } catch (error) {
@@ -462,7 +511,48 @@ class ApiService {
   }
 }
 
-export const apiService = new ApiService();
+// Create a structured API service instance with grouped methods
+const apiServiceInstance = new ApiService();
+
+export const apiService = {
+  ...apiServiceInstance,
+  auth: {
+    login: apiServiceInstance.login.bind(apiServiceInstance),
+    pinLogin: apiServiceInstance.pinLogin.bind(apiServiceInstance),
+    register: apiServiceInstance.register.bind(apiServiceInstance),
+    logout: apiServiceInstance.logout.bind(apiServiceInstance),
+    verifyEmail: apiServiceInstance.verifyEmail.bind(apiServiceInstance),
+    resendVerificationCode: apiServiceInstance.resendVerificationCode.bind(apiServiceInstance),
+    setupPin: apiServiceInstance.setupPin.bind(apiServiceInstance),
+    validatePin: apiServiceInstance.validatePin.bind(apiServiceInstance),
+    changePin: apiServiceInstance.changePin.bind(apiServiceInstance),
+    refreshToken: apiServiceInstance.refreshToken.bind(apiServiceInstance),
+  },
+  user: {
+    getProfile: apiServiceInstance.getProfile.bind(apiServiceInstance),
+    updateProfile: apiServiceInstance.updateProfile.bind(apiServiceInstance),
+    uploadProfilePicture: apiServiceInstance.uploadProfilePicture.bind(apiServiceInstance),
+    searchUsers: apiServiceInstance.searchUsers.bind(apiServiceInstance),
+    getUserStats: apiServiceInstance.getUserStats.bind(apiServiceInstance),
+  },
+  properties: {
+    getProperties: apiServiceInstance.getProperties.bind(apiServiceInstance),
+    getProperty: apiServiceInstance.getProperty.bind(apiServiceInstance),
+    createProperty: apiServiceInstance.createProperty.bind(apiServiceInstance),
+    updateProperty: apiServiceInstance.updateProperty.bind(apiServiceInstance),
+    deleteProperty: apiServiceInstance.deleteProperty.bind(apiServiceInstance),
+    uploadPropertyPhotos: apiServiceInstance.uploadPropertyPhotos.bind(apiServiceInstance),
+    exportProperty: apiServiceInstance.exportProperty.bind(apiServiceInstance),
+  },
+  subscriptions: {
+    getCurrentSubscription: apiServiceInstance.getCurrentSubscription.bind(apiServiceInstance),
+    getPlans: apiServiceInstance.getPlans.bind(apiServiceInstance),
+    createPaymentOrder: apiServiceInstance.createPaymentOrder.bind(apiServiceInstance),
+    verifyPayment: apiServiceInstance.verifyPayment.bind(apiServiceInstance),
+    cancelSubscription: apiServiceInstance.cancelSubscription.bind(apiServiceInstance),
+  }
+};
+
 export { tokenManager };
 export default api;
 

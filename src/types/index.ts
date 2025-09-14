@@ -1,25 +1,33 @@
 export interface User {
   _id: string;
+  id?: string; // alias for _id
   name: string;
   email: string;
   phone?: string;
+  phoneCode?: string;
   avatar?: string;
-  emailVerified: boolean;
-  phoneVerified: boolean;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
   preferredLanguage: string;
-  timezone: string;
-  dateFormat: string;
-  pin?: string;
-  pinEnabled: boolean;
+  timezone?: string;
+  dateFormat?: string;
+  pinHash?: string | null;
+  pinEnabled?: boolean;
   biometricEnabled: boolean;
   deviceId?: string;
   pushToken?: string;
+  lastLogin?: Date;
   lastLoginAt?: Date;
-  isActive: boolean;
+  isActive?: boolean;
   role: 'user' | 'admin';
-  permissions: UserPermission[];
-  preferences: UserPreferences;
+  permissions?: UserPermission[];
+  preferences?: UserPreferences;
   subscription?: Subscription;
+  profilePicture?: {
+    filename?: string;
+    url?: string;
+    thumbUrl?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

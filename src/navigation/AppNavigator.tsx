@@ -8,6 +8,7 @@ import { useAuth } from '../store/AuthContext';
 import LoadingScreen from '../screens/LoadingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
+import EmailVerificationScreen from '../screens/auth/EmailVerificationScreen';
 import PinLoginScreen from '../screens/auth/PinLoginScreen';
 import PinAuthScreen from '../screens/auth/PinAuthScreen';
 import PinSetupScreen from '../screens/auth/PinSetupScreen';
@@ -27,6 +28,7 @@ const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
+    <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
     <Stack.Screen name="PinLogin" component={PinLoginScreen} />
     <Stack.Screen name="PinAuth" component={PinAuthScreen} />
     <Stack.Screen name="PinSetup" component={PinSetupScreen} />

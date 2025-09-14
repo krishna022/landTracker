@@ -22,11 +22,13 @@ interface AuthContextType {
   state: AuthState;
   login: (email: string, password: string) => Promise<{ user: User; tokens: AuthTokens }>;
   loginWithPin: (pin: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
+  register: (userData: RegisterData) => Promise<{ user: User }>;
+  verifyEmail: (email: string, code: string) => Promise<{ user: User; tokens: AuthTokens }>;
+  setupPin: (pin: string, biometricEnabled?: boolean) => Promise<{ user: User }>;
+  validatePin: (pin: string) => Promise<{ user: User }>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   hasExistingSession: () => Promise<boolean>;
-  setupPin: (pin: string) => Promise<void>;
   completeAuthentication: () => Promise<void>;
   user: User | null;
 }
@@ -106,7 +108,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      const response = await apiService.login({
+      const response = await apiService.auth.login({
         email,
         password,
       });
@@ -132,7 +134,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      const response = await apiService.pinLogin({
+      const response = await apiService.auth.pinLogin({
         pin,
       });
       
@@ -153,14 +155,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      const response = await apiService.register(userData);
+      const response = await apiService.auth.register(userData);
       const authData = response?.data as { user: User; tokens: AuthTokens };
       
-      dispatch({ type: 'SET_USER', payload: authData.user });
-      dispatch({ type: 'SET_TOKENS', payload: authData.tokens });
-      
-      await AsyncStorage.setItem('auth_user', JSON.stringify(authData.user));
-      await AsyncStorage.setItem('auth_tokens', JSON.stringify(authData.tokens));
+      // Don't auto-login after registration, just return user data
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { user: authData.user };
     } catch (error) {
       dispatch({ type: 'SET_LOADING', payload: false });
       throw error;
@@ -170,7 +170,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     try {
       // Call logout API if needed
-      await apiService.logout();
+      await apiService.auth.logout();
     } catch (error) {
       console.error('Logout API error:', error);
     } finally {
@@ -183,7 +183,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const refreshToken = async () => {
     try {
-      const response = await apiService.refreshToken();
+      const response = await apiService.auth.refreshToken();
       const tokens = (response as any).data as AuthTokens;
       
       dispatch({ type: 'SET_TOKENS', payload: tokens });
@@ -205,11 +205,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const setupPin = async (pin: string): Promise<void> => {
+  const verifyEmail = async (email: string, code: string) => {
     try {
-      await AsyncStorage.setItem('user_pin', pin);
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const response = await apiService.auth.verifyEmail(email, code);
+      const authData = response as { user: User; tokens: AuthTokens };
+      
+      // After email verification, store tokens but don't complete auth yet
+      await AsyncStorage.setItem('auth_user', JSON.stringify(authData.user));
+      await AsyncStorage.setItem('auth_tokens', JSON.stringify(authData.tokens));
+      
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+      return authData;
     } catch (error) {
-      throw new Error('Failed to setup PIN');
+      dispatch({ type: 'SET_LOADING', payload: false });
+      throw error;
+    }
+  };
+
+  const setupPin = async (pin: string, biometricEnabled: boolean = false) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const response = await apiService.auth.setupPin(pin, biometricEnabled);
+      const userData = response as { user: User };
+      
+      // Update stored user data with PIN info
+      await AsyncStorage.setItem('auth_user', JSON.stringify(userData.user));
+      
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+      return userData;
+    } catch (error) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+      throw error;
+    }
+  };
+
+  const validatePin = async (pin: string) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const response = await apiService.auth.validatePin(pin);
+      const userData = response as { user: User };
+      
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+      return userData;
+    } catch (error) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+      throw error;
     }
   };
 
@@ -235,10 +282,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     loginWithPin,
     register,
+    verifyEmail,
+    setupPin,
+    validatePin,
     logout,
     refreshToken,
     hasExistingSession,
-    setupPin,
     completeAuthentication,
     user: state.user,
   };

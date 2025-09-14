@@ -41,7 +41,19 @@ if (__DEV__) {
         console.log('📤 Request Data:', this._data);
         console.log('📥 Response Status:', this.status);
         console.log('📥 Response Headers:', this.getAllResponseHeaders());
-        console.log('📥 Response Data:', this.responseText);
+        
+        // Only access responseText if responseType is text or empty
+        try {
+          if (this.responseType === '' || this.responseType === 'text') {
+            console.log('📥 Response Data:', this.responseText);
+          } else {
+            console.log('📥 Response Type:', this.responseType);
+            console.log('📥 Response Data: [Binary/Blob data]');
+          }
+        } catch (e) {
+          console.log('📥 Response Data: [Could not access response data]');
+        }
+        
         console.log('⏱️ Duration:', duration + 'ms');
         console.groupEnd();
       }

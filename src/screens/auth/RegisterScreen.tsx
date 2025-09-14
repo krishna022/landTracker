@@ -125,12 +125,25 @@ const RegisterScreen: React.FC = () => {
 
     setLoading(true);
     try {
-      await register({
+      const result = await register({
         name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
         email: formData.email.trim().toLowerCase(),
         phoneCode: formData.phoneCode,
         phone: formData.phone.trim(),
         password: formData.password,
+      });
+
+      // Registration successful, navigate to email verification
+      Toast.show({
+        type: 'success',
+        text1: 'Registration Successful',
+        text2: 'Please check your email for verification code.',
+        position: 'bottom'
+      });
+
+      // @ts-ignore - Navigation typing
+      navigation.navigate('EmailVerification', { 
+        email: formData.email.trim().toLowerCase() 
       });
     } catch (error: any) {
       Toast.show({

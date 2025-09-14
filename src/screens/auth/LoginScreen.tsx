@@ -80,21 +80,64 @@ const LoginScreen: React.FC = () => {
     try {
       const authData = await login(email, password);
       
-      // Check if user has PIN setup
-      const pinData = await AsyncStorage.getItem('user_pin');
+      // Check the user's verification and PIN status
+      const user = authData.user;
       
-      if (pinData) {
-        // User has PIN, redirect to PIN auth
-        navigation.navigate('PinAuth' as never);
-      } else {
-        // User doesn't have PIN, redirect to PIN setup
-        navigation.navigate('PinSetup' as never);
+      if (!user.isEmailVerified) {
+        // Email not verified, navigate to email verification
+        Toast.show({
+          type: 'info',
+          text1: 'Email Verification Required',
+          text2: 'Please verify your email before logging in',
+          position: 'bottom'
+        });
+        
+        // @ts-ignore - Navigation typing
+        navigation.navigate('EmailVerification', { email: user.email });
+        return;
       }
+      
+      if (!user.pinHash) {
+        // Email verified but no PIN set, navigate to PIN setup
+        Toast.show({
+          type: 'info',
+          text1: 'Setup Required',
+          text2: 'Please set up your 4-digit PIN for security',
+          position: 'bottom'
+        });
+        
+        // @ts-ignore - Navigation typing
+        navigation.navigate('PinSetup');
+        return;
+      }
+      
+      // Email verified and PIN exists, navigate to PIN authentication
+      // @ts-ignore - Navigation typing
+      navigation.navigate('PinAuth');
+      
     } catch (error: any) {
+      console.error('Login error:', error);
+      
+      // Check if it's an email verification error
+      if (error.response?.data?.requiresEmailVerification) {
+        Toast.show({
+          type: 'info',
+          text1: 'Email Verification Required',
+          text2: 'Please verify your email before logging in',
+          position: 'bottom'
+        });
+        
+        // @ts-ignore - Navigation typing
+        navigation.navigate('EmailVerification', { 
+          email: error.response.data.email || email 
+        });
+        return;
+      }
+      
       Toast.show({
         type: 'error',
         text1: 'Login Failed',
-        text2: error.message || 'An error occurred',
+        text2: error.message || error.response?.data?.message || 'An error occurred',
         position: 'bottom'
       });
     } finally {
@@ -205,10 +248,10 @@ const LoginScreen: React.FC = () => {
               <View style={styles.dividerLine} />
             </View>
 
-            <TouchableOpacity style={styles.biometricButton}>
+            {/* <TouchableOpacity style={styles.biometricButton}>
               <Text style={styles.biometricIcon}>👆</Text>
               <Text style={styles.biometricText}>Use Biometric Login</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <View style={styles.footer}>

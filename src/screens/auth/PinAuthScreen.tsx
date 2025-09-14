@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Dimensions,
   SafeAreaView,
   Animated,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../store/AuthContext';
@@ -16,18 +16,14 @@ import { theme } from '../../utils/theme';
 
 const { width, height } = Dimensions.get('window');
 
-interface PinAuthScreenProps {
-  navigation: any;
-}
-
-const PinAuthScreen: React.FC<PinAuthScreenProps> = ({ navigation }) => {
+const PinAuthScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [userName, setUserName] = useState('');
-  const [storedPin, setStoredPin] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const { state, completeAuthentication, logout } = useAuth();
+  const { validatePin, completeAuthentication } = useAuth();
 
   const shakeAnimation = new Animated.Value(0);
 
@@ -39,15 +35,11 @@ const PinAuthScreen: React.FC<PinAuthScreenProps> = ({ navigation }) => {
   const loadUserData = async () => {
     try {
       const userData = await AsyncStorage.getItem('auth_user');
-      const pinData = await AsyncStorage.getItem('user_pin');
       
       if (userData) {
         const user = JSON.parse(userData);
         setUserName(user.name);
-      }
-      
-      if (pinData) {
-        setStoredPin(pinData);
+        setBiometricAvailable(user.biometricEnabled || false);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -55,9 +47,9 @@ const PinAuthScreen: React.FC<PinAuthScreenProps> = ({ navigation }) => {
   };
 
   const checkBiometricAvailability = async () => {
+    // Placeholder for biometric availability check
+    // In a real app, you would check if biometric hardware is available
     try {
-      // TODO: Implement biometric check using react-native-biometrics or similar
-      // For now, we'll assume it's available
       setBiometricAvailable(true);
     } catch (error) {
       setBiometricAvailable(false);
@@ -65,13 +57,13 @@ const PinAuthScreen: React.FC<PinAuthScreenProps> = ({ navigation }) => {
   };
 
   const handlePinPress = (digit: string) => {
-    if (pin.length < 6) {
+    if (pin.length < 4) {
       const newPin = pin + digit;
       setPin(newPin);
       
       // Auto-validate when PIN is complete
-      if (newPin.length === 4 || newPin.length === 6) {
-        validatePin(newPin);
+      if (newPin.length === 4) {
+        setTimeout(() => validatePinInput(newPin), 300);
       }
     }
   };
@@ -80,94 +72,82 @@ const PinAuthScreen: React.FC<PinAuthScreenProps> = ({ navigation }) => {
     setPin(pin.slice(0, -1));
   };
 
-  const validatePin = async (pinToValidate: string) => {
+  const validatePinInput = async (pinToValidate: string) => {
     setLoading(true);
     
     try {
-      // Check against stored PIN
-      if (pinToValidate === storedPin) {
-        // PIN is correct, complete authentication
-        await completeAuthentication();
-        
+      // Use the new validatePin method from AuthContext
+      await validatePin(pinToValidate);
+      
+      // Complete authentication to mark user as logged in
+      await completeAuthentication();
+      
+      Toast.show({
+        type: 'success',
+        text1: 'Welcome Back!',
+        text2: `Hello ${userName}`,
+        position: 'bottom'
+      });
+      
+      // Navigate to main app
+      (navigation as any).reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
+    } catch (error: any) {
+      console.error('PIN validation error:', error);
+      
+      setAttempts(prev => prev + 1);
+      setPin('');
+      
+      // Shake animation for wrong PIN
+      Animated.sequence([
+        Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
+      ]).start();
+      
+      // Handle lockout if needed
+      if (error.response?.data?.lockedUntil) {
         Toast.show({
-          type: 'success',
-          text1: 'Welcome back!',
-          text2: `Hello ${userName}`,
+          type: 'error',
+          text1: 'Account Locked',
+          text2: error.message || 'Too many failed attempts',
           position: 'bottom'
         });
-        
-        // Navigate to main app
-        navigation.replace('Main');
       } else {
-        // Incorrect PIN
-        setAttempts(prev => prev + 1);
-        setPin('');
-        
-        // Shake animation for incorrect PIN
-        Animated.sequence([
-          Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-          Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
-          Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-          Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
-        ]).start();
-        
+        const attemptsRemaining = error.response?.data?.attemptsRemaining;
         Toast.show({
           type: 'error',
           text1: 'Incorrect PIN',
-          text2: `${3 - attempts} attempts remaining`,
+          text2: attemptsRemaining ? `${attemptsRemaining} attempts remaining` : 'Please try again',
           position: 'bottom'
         });
-        
-        // Lock after 3 attempts
-        if (attempts >= 2) {
-          handleLogout();
-        }
       }
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to validate PIN',
-        position: 'bottom'
-      });
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleBiometricAuth = async () => {
-    try {
-      // TODO: Implement biometric authentication
-      Toast.show({
-        type: 'info',
-        text1: 'Biometric Auth',
-        text2: 'Feature coming soon',
-        position: 'bottom'
-      });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Biometric Error',
-        text2: 'Failed to authenticate',
-        position: 'bottom'
-      });
-    }
+    // Placeholder for biometric authentication
+    Toast.show({
+      type: 'info',
+      text1: 'Biometric Authentication',
+      text2: 'Feature will be implemented here',
+      position: 'bottom'
+    });
   };
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.multiRemove(['auth_tokens', 'auth_user', 'user_pin']);
-      await logout();
-      navigation.replace('Auth');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const handleBackToLogin = () => {
+    (navigation as any).navigate('Login');
   };
 
   const renderPinDots = () => {
     return (
       <View style={styles.pinDotsContainer}>
-        {[...Array(6)].map((_, index) => (
+        {[...Array(4)].map((_, index) => (
           <View
             key={index}
             style={[
@@ -206,10 +186,11 @@ const PinAuthScreen: React.FC<PinAuthScreenProps> = ({ navigation }) => {
                     handlePinPress(item);
                   }
                 }}
-                disabled={item === ''}
+                disabled={item === '' || loading}
+                activeOpacity={0.7}
               >
                 {item === 'backspace' ? (
-                  <Text style={styles.backspaceText}>⌫</Text>
+                  <Text style={styles.backspaceIcon}>⌫</Text>
                 ) : (
                   <Text style={styles.numpadButtonText}>{item}</Text>
                 )}
@@ -223,41 +204,42 @@ const PinAuthScreen: React.FC<PinAuthScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.welcomeText}>Welcome back</Text>
-        <Text style={styles.userNameText}>{userName}</Text>
-        <Text style={styles.instructionText}>Enter your PIN to continue</Text>
-      </View>
+      <Animated.View style={[styles.content, { transform: [{ translateX: shakeAnimation }] }]}>
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoEmoji}>🔐</Text>
+          </View>
+          <Text style={styles.title}>Enter Your PIN</Text>
+          <Text style={styles.subtitle}>
+            {userName ? `Welcome back, ${userName}` : 'Enter your 4-digit PIN to continue'}
+          </Text>
+        </View>
 
-      <Animated.View 
-        style={[
-          styles.pinContainer,
-          { transform: [{ translateX: shakeAnimation }] }
-        ]}
-      >
         {renderPinDots()}
-      </Animated.View>
 
-      {renderNumpad()}
+        {renderNumpad()}
 
-      <View style={styles.bottomActions}>
-        {biometricAvailable && (
+        <View style={styles.footer}>
+          {biometricAvailable && (
+            <TouchableOpacity
+              style={styles.biometricButton}
+              onPress={handleBiometricAuth}
+              disabled={loading}
+            >
+              <Text style={styles.biometricIcon}>👆</Text>
+              <Text style={styles.biometricText}>Use Biometric</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
-            style={styles.biometricButton}
-            onPress={handleBiometricAuth}
+            style={styles.backButton}
+            onPress={handleBackToLogin}
+            disabled={loading}
           >
-            <Text style={styles.biometricButtonText}>👆</Text>
-            <Text style={styles.biometricText}>Use Fingerprint</Text>
+            <Text style={styles.backButtonText}>Back to Login</Text>
           </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutButtonText}>Use Different Account</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -266,114 +248,122 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
     justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 20,
+    marginTop: height * 0.1,
+    marginBottom: 40,
   },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: '600',
+  logoContainer: {
+    marginBottom: 24,
+  },
+  logoEmoji: {
+    fontSize: 48,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
     color: theme.colors.onBackground,
     marginBottom: 8,
-  },
-  userNameText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: theme.colors.primary,
-    marginBottom: 16,
-  },
-  instructionText: {
-    fontSize: 16,
-    color: theme.colors.onSurfaceVariant,
     textAlign: 'center',
   },
-  pinContainer: {
-    alignItems: 'center',
-    marginVertical: 40,
+  subtitle: {
+    fontSize: 16,
+    color: theme.colors.onSurface,
+    textAlign: 'center',
+    opacity: 0.8,
+    lineHeight: 22,
   },
   pinDotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 60,
   },
   pinDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: theme.colors.outline,
-    marginHorizontal: 8,
+    marginHorizontal: 12,
+    backgroundColor: theme.colors.surface,
   },
   pinDotFilled: {
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
   numpadContainer: {
-    paddingHorizontal: 40,
-    paddingBottom: 20,
+    alignSelf: 'center',
+    marginBottom: 40,
   },
   numpadRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: 20,
   },
   numpadButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: theme.colors.surfaceVariant,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
+    marginHorizontal: 20,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    elevation: 2,
   },
   numpadButtonEmpty: {
     backgroundColor: 'transparent',
-    elevation: 0,
     shadowOpacity: 0,
+    elevation: 0,
   },
   numpadButtonText: {
     fontSize: 24,
     fontWeight: '600',
     color: theme.colors.onSurface,
   },
-  backspaceText: {
+  backspaceIcon: {
     fontSize: 24,
     color: theme.colors.onSurface,
   },
-  bottomActions: {
+  footer: {
     alignItems: 'center',
     paddingBottom: 40,
-    paddingHorizontal: 20,
+    gap: 20,
   },
   biometricButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
-    padding: 16,
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+    gap: 8,
   },
-  biometricButtonText: {
-    fontSize: 32,
-    marginBottom: 8,
+  biometricIcon: {
+    fontSize: 20,
   },
   biometricText: {
     fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '600',
+    color: theme.colors.onSurface,
+    fontWeight: '500',
   },
-  logoutButton: {
+  backButton: {
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
-  logoutButtonText: {
+  backButtonText: {
     fontSize: 16,
-    color: theme.colors.outline,
-    textAlign: 'center',
+    color: theme.colors.onSurface,
+    opacity: 0.7,
   },
 });
 
