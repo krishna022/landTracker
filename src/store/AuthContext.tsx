@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, AuthTokens } from '../types';
 import { apiService } from '../services/api';
+import { tokenManager } from '../services/api';
 
 interface RegisterData {
   name: string;
@@ -95,6 +96,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkAuthState = async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Initialize token manager with stored tokens
+      await tokenManager.loadTokens();
       
       // Load tokens from storage
       const tokens = await AsyncStorage.getItem('auth_tokens');

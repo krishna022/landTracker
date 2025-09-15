@@ -34,7 +34,7 @@ const LoginScreen: React.FC = () => {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const { login } = useAuth();
+  const { login, completeAuthentication } = useAuth();
   const navigation = useNavigation();
   const route = useRoute();
   
@@ -120,6 +120,15 @@ const LoginScreen: React.FC = () => {
       }
       
       console.log('LoginScreen: Login successful, result:', result);
+      
+      // Check if user has PIN setup and handle accordingly
+      if (result.user.hasPinSetup) {
+        console.log('LoginScreen: User has PIN setup, completing authentication');
+        await completeAuthentication();
+      } else {
+        console.log('LoginScreen: User needs PIN setup, navigating to PinSetup');
+        navigation.navigate('PinSetup' as never);
+      }
       
       // Success case - navigation will be handled by AuthContext/AppNavigator
       Toast.show({
@@ -453,7 +462,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 'auto',
-    paddingTop: 24,
+    paddingTop: 4,
   },
   footerText: {
     fontSize: 14,

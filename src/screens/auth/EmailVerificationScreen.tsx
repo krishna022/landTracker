@@ -34,6 +34,8 @@ const EmailVerificationScreen: React.FC = () => {
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const inputRefs = useRef<TextInput[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -45,6 +47,34 @@ const EmailVerificationScreen: React.FC = () => {
       duration: 500,
       useNativeDriver: true,
     }).start();
+
+    // Send verification code when screen mounts
+    const sendVerificationCode = async () => {
+      try {
+        console.log('Sending verification code request for:', email);
+        const response = await apiService.auth.sendVerification(email) as any;
+        
+        if (response.success) {
+          console.log('Verification code sent successfully:', response.data);
+          Toast.show({
+            type: 'info',
+            text1: 'Code Sent',
+            text2: response.data.codeGenerated 
+              ? 'A new verification code has been sent to your email'
+              : 'Your existing verification code is still valid',
+          });
+        }
+      } catch (error: any) {
+        console.error('Failed to send verification code:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to send verification code. Please try again.',
+        });
+      }
+    };
+
+    sendVerificationCode();
 
     // Start countdown timer
     const interval = setInterval(() => {
@@ -58,8 +88,20 @@ const EmailVerificationScreen: React.FC = () => {
       });
     }, 1000);
 
+    // Cleanup interval on unmount
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (verificationSuccess) {
+      // Fade in success animation
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [verificationSuccess]);
 
   const handleCodeChange = (value: string, index: number) => {
     if (value.length > 1) return; // Only allow single digits
@@ -106,17 +148,17 @@ const EmailVerificationScreen: React.FC = () => {
       const response = await apiService.auth.verifyEmail(email, code) as any;
 
       if (response.success) {
-        Toast.show({
-          type: 'success',
-          text1: 'Email Verified',
-          text2: 'Your email has been verified successfully',
-        });
-
-        // Navigate back to login with success flag
-        (navigation as any).navigate('Login', { 
-          emailVerified: true,
-          email: email 
-        });
+        // Show success state
+        setVerificationSuccess(true);
+        setSuccessMessage('Your account has been verified successfully!');
+        
+        // Navigate back to login after showing success message for 3 seconds
+        setTimeout(() => {
+          (navigation as any).navigate('Login', { 
+            emailVerified: true,
+            email: email 
+          });
+        }, 3000);
       }
     } catch (error: any) {
       console.error('Email verification error:', error);
@@ -169,6 +211,31 @@ const EmailVerificationScreen: React.FC = () => {
   };
 
   const isCodeComplete = verificationCode.every(digit => digit !== '');
+
+  // Show success screen if verification was successful
+  if (verificationSuccess) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.successContainer}>
+          <Animated.View style={[styles.successContent, { opacity: fadeAnim }]}>
+            <View style={styles.successIconContainer}>
+              <Text style={styles.successIcon}>✅</Text>
+            </View>
+            <Text style={styles.successTitle}>Account Verified!</Text>
+            <Text style={styles.successMessage}>{successMessage}</Text>
+            <Text style={styles.successSubtitle}>
+              Redirecting to login page...
+            </Text>
+            <View style={styles.loadingDots}>
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+            </View>
+          </Animated.View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -440,6 +507,65 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: theme.colors.onSurfaceVariant,
     fontSize: 16,
+  },
+  successContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 24,
+  },
+  successContent: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    width: '100%',
+    maxWidth: 320,
+  },
+  successIconContainer: {
+    marginBottom: 24,
+  },
+  successIcon: {
+    fontSize: 64,
+  },
+  successTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: theme.colors.onSurface,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  successMessage: {
+    fontSize: 16,
+    color: theme.colors.onSurface,
+    textAlign: 'center',
+    marginBottom: 8,
+    opacity: 0.9,
+  },
+  successSubtitle: {
+    fontSize: 14,
+    color: theme.colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.primary,
+    marginHorizontal: 4,
   },
 });
 

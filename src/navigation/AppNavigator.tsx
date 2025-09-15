@@ -2,14 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Text } from 'react-native';
 
 import { useAuth } from '../store/AuthContext';
 import LoadingScreen from '../screens/LoadingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import EmailVerificationScreen from '../screens/auth/EmailVerificationScreen';
-import PinLoginScreen from '../screens/auth/PinLoginScreen';
 import PinAuthScreen from '../screens/auth/PinAuthScreen';
 import PinSetupScreen from '../screens/auth/PinSetupScreen';
 import DashboardScreen from '../screens/DashboardScreen';
@@ -37,7 +36,6 @@ const AuthStack = ({ requiresEmailVerification, emailVerificationEmail }: { requ
         component={EmailVerificationScreen}
         initialParams={emailVerificationEmail ? { email: emailVerificationEmail } : undefined}
       />
-      <Stack.Screen name="PinLogin" component={PinLoginScreen} />
       <Stack.Screen name="PinAuth" component={PinAuthScreen} />
       <Stack.Screen name="PinSetup" component={PinSetupScreen} />
     </Stack.Navigator>
@@ -80,7 +78,7 @@ const MainTabs = () => (
       options={{
         tabBarLabel: 'Dashboard',
         tabBarIcon: ({ color, size }) => (
-          <Icon name="dashboard" size={size} color={color} />
+          <Text style={{ fontSize: size, color }}>🏠</Text>
         ),
       }}
     />
@@ -90,7 +88,7 @@ const MainTabs = () => (
       options={{
         tabBarLabel: 'Properties',
         tabBarIcon: ({ color, size }) => (
-          <Icon name="location-city" size={size} color={color} />
+          <Text style={{ fontSize: size, color }}>🏢</Text>
         ),
       }}
     />
@@ -100,7 +98,7 @@ const MainTabs = () => (
       options={{
         tabBarLabel: 'Map',
         tabBarIcon: ({ color, size }) => (
-          <Icon name="map" size={size} color={color} />
+          <Text style={{ fontSize: size, color }}>🗺️</Text>
         ),
       }}
     />
@@ -110,7 +108,7 @@ const MainTabs = () => (
       options={{
         tabBarLabel: 'Profile',
         tabBarIcon: ({ color, size }) => (
-          <Icon name="person" size={size} color={color} />
+          <Text style={{ fontSize: size, color }}>👤</Text>
         ),
       }}
     />
@@ -126,6 +124,13 @@ const AppNavigator = () => {
   useEffect(() => {
     checkSessionAndPin();
   }, []);
+
+  // Also check PIN setup when user state changes
+  useEffect(() => {
+    if (state.user?.hasPinSetup !== undefined) {
+      setHasPinSetup(state.user.hasPinSetup);
+    }
+  }, [state.user?.hasPinSetup]);
 
   const checkSessionAndPin = async () => {
     try {
@@ -149,14 +154,14 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {state.isAuthenticated ? (
-        // User is fully authenticated, show main app
+      {state.isAuthenticated && hasPinSetup ? (
+        // User is fully authenticated and has PIN setup, show main app
         <>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
         </>
       ) : hasSession ? (
-        // User has an existing session but needs PIN/biometric auth
+        // User has an existing session but needs PIN auth first
         hasPinSetup ? (
           <Stack.Screen name="PinAuth" component={PinAuthScreen} />
         ) : (

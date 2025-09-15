@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthTokens, ApiResponse } from '../types';
 
 // For now, we'll use a default API URL. In production, this should come from environment variables
-// Use 10.0.2.2 for Android emulator to access localhost on host machine
-const API_BASE_URL = 'http://10.0.2.2:3000/api';
+// Use local IP for iOS simulator, 10.0.2.2 for Android emulator to access localhost on host machine
+const API_BASE_URL = __DEV__ ? 'http://10.0.2.2:3000/api' : 'https://your-production-api.com/api';
 
 // Create axios instance
 // api.ts - Update your Axios instance
@@ -14,6 +14,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  responseType: 'json',
   validateStatus: function (status) {
     // Allow 200-299 and 403 (for email verification)
     return (status >= 200 && status < 300) || status === 403;
@@ -298,6 +299,17 @@ async login(credentials: any) {
     }
   }
 
+  async sendVerification(email: string) {
+    try {
+      const response = await api.post('/auth/send-verification', {
+        email
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
   async setupPin(pin: string, biometricEnabled: boolean = false) {
     try {
       const response = await api.post('/auth/setup-pin', {
@@ -552,6 +564,7 @@ export const apiService = {
     logout: apiServiceInstance.logout.bind(apiServiceInstance),
     verifyEmail: apiServiceInstance.verifyEmail.bind(apiServiceInstance),
     resendVerificationCode: apiServiceInstance.resendVerificationCode.bind(apiServiceInstance),
+    sendVerification: apiServiceInstance.sendVerification.bind(apiServiceInstance),
     setupPin: apiServiceInstance.setupPin.bind(apiServiceInstance),
     validatePin: apiServiceInstance.validatePin.bind(apiServiceInstance),
     changePin: apiServiceInstance.changePin.bind(apiServiceInstance),

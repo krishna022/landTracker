@@ -10,16 +10,21 @@ import {
   Dimensions,
 } from 'react-native';
 import { useAuth } from '../store/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 import { theme } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
 
 const ProfileScreen: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
       await logout();
+      // Navigate to login screen after logout
+      // @ts-ignore - Navigation typing
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Logout error:', error);
     }

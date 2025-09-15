@@ -103,11 +103,7 @@ const PinSetupScreen: React.FC = () => {
         position: 'bottom'
       });
       
-      // Navigate to main app
-      (navigation as any).reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      // Navigation will be handled automatically by AuthContext state change
     } catch (error: any) {
       console.error('PIN setup error:', error);
       Toast.show({

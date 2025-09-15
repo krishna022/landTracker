@@ -82,6 +82,7 @@ const PropertiesScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {properties.length > 0 ? (
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.title}>My Properties</Text>
@@ -98,6 +99,7 @@ const PropertiesScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
+      ): null}
 
       {properties.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -212,6 +214,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   emptyContainer: {
+    marginTop: 80,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

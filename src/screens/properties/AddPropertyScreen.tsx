@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,17 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { theme } from '../../utils/theme';
+import { apiService } from '../../services/api';
+import { config } from '../../config';
 
 interface PropertyFormData {
   name: string;
   description: string;
   area: string;
   location: string;
+  locationDetails?: any; // Store full Google Places details
 }
 
 const AddPropertyScreen: React.FC = () => {
@@ -26,8 +30,28 @@ const AddPropertyScreen: React.FC = () => {
     description: '',
     area: '',
     location: '',
+    locationDetails: null,
   });
   const [loading, setLoading] = useState(false);
+
+  // Hide tab bar when screen is focused
+  useEffect(() => {
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      parentNavigation.setOptions({
+        tabBarStyle: { display: 'none' }
+      });
+    }
+
+    return () => {
+      // Show tab bar when screen is unfocused
+      if (parentNavigation) {
+        parentNavigation.setOptions({
+          tabBarStyle: { display: 'flex' }
+        });
+      }
+    };
+  }, [navigation]);
 
   const handleInputChange = (field: keyof PropertyFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -39,15 +63,28 @@ const AddPropertyScreen: React.FC = () => {
       return;
     }
 
-    if (!formData.location.trim()) {
+    if (!formData.locationDetails) {
       Alert.alert('Error', 'Property location is required');
       return;
     }
 
     setLoading(true);
     try {
-      // Here we would call the API to create the property
-      // await apiService.createProperty(formData);
+      // Call the API to create the property
+      await apiService.properties.createProperty({
+        title: formData.name,
+        description: formData.description,
+        addressText: formData.location,
+        area: formData.area ? { value: parseFloat(formData.area), unit: 'sqm' } : undefined,
+        locationPoint: formData.locationDetails.geometry ? {
+          type: 'Point',
+          coordinates: [
+            formData.locationDetails.geometry.location.lng,
+            formData.locationDetails.geometry.location.lat
+          ]
+        } : undefined,
+      });
+
       Alert.alert('Success', 'Property added successfully!');
       navigation.goBack();
     } catch (error: any) {
@@ -77,12 +114,67 @@ const AddPropertyScreen: React.FC = () => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Location *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter property location"
-                value={formData.location}
-                onChangeText={(value) => handleInputChange('location', value)}
-                autoCapitalize="words"
+              <GooglePlacesAutocomplete
+                placeholder="Search for a location"
+                onPress={(data, details = null) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    location: data.description,
+                    locationDetails: details,
+                  }));
+                }}
+                query={{
+                  key: config.GOOGLE_PLACES_API_KEY,
+                  language: 'en',
+                  components: 'country:in', // Restrict to India, change as needed
+                }}
+                fetchDetails={true}
+                styles={{
+                  textInput: {
+                    borderWidth: 1,
+                    borderColor: theme.colors.outline,
+                    borderRadius: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    fontSize: 16,
+                    backgroundColor: theme.colors.surface,
+                    color: theme.colors.onSurface,
+                  },
+                  container: {
+                    flex: 0,
+                  },
+                  listView: {
+                    backgroundColor: theme.colors.surface,
+                    borderWidth: 1,
+                    borderColor: theme.colors.outline,
+                    borderTopWidth: 0,
+                    borderBottomLeftRadius: 8,
+                    borderBottomRightRadius: 8,
+                  },
+                  row: {
+                    backgroundColor: theme.colors.surface,
+                    padding: 13,
+                    height: 44,
+                    flexDirection: 'row',
+                  },
+                  separator: {
+                    height: 0.5,
+                    backgroundColor: theme.colors.outline,
+                  },
+                  description: {
+                    color: theme.colors.onSurface,
+                  },
+                  predefinedPlacesDescription: {
+                    color: theme.colors.primary,
+                  },
+                }}
+                textInputProps={{
+                  placeholderTextColor: theme.colors.onSurface,
+                  value: formData.location,
+                  onChangeText: (text) => {
+                    setFormData(prev => ({ ...prev, location: text }));
+                  },
+                }}
               />
             </View>
 
@@ -108,25 +200,6 @@ const AddPropertyScreen: React.FC = () => {
                 numberOfLines={4}
                 textAlignVertical="top"
               />
-            </View>
-
-            <View style={styles.mapSection}>
-              <Text style={styles.label}>Property Boundary</Text>
-              <View style={styles.mapPlaceholder}>
-                <Text style={styles.mapPlaceholderText}>
-                  Map functionality will be added here
-                </Text>
-                <Text style={styles.mapPlaceholderSubtext}>
-                  Draw property boundaries and add location markers
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.photoSection}>
-              <Text style={styles.label}>Property Photos</Text>
-              <TouchableOpacity style={styles.photoButton}>
-                <Text style={styles.photoButtonText}>+ Add Photos</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -195,50 +268,6 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     paddingTop: 12,
-  },
-  mapSection: {
-    gap: 8,
-  },
-  mapPlaceholder: {
-    height: 200,
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  mapPlaceholderText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  mapPlaceholderSubtext: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    opacity: 0.7,
-  },
-  photoSection: {
-    gap: 8,
-  },
-  photoButton: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    borderStyle: 'dashed',
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  photoButtonText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',
