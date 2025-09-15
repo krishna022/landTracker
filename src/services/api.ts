@@ -500,6 +500,28 @@ async login(credentials: any) {
     }
   }
 
+  async uploadPropertyDocuments(propertyId: string, documents: FormData) {
+    try {
+      const response = await api.post(`/properties/${propertyId}/documents`, documents, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  async deletePropertyDocument(propertyId: string, documentId: string) {
+    try {
+      const response = await api.delete(`/properties/${propertyId}/documents/${documentId}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
   async grantAccess(propertyId: string, userId: string, role: string) {
     try {
       const response = await api.post(`/properties/${propertyId}/access`, {
@@ -650,6 +672,8 @@ export const apiService = {
     updateProperty: apiServiceInstance.updateProperty.bind(apiServiceInstance),
     deleteProperty: apiServiceInstance.deleteProperty.bind(apiServiceInstance),
     uploadPropertyPhotos: apiServiceInstance.uploadPropertyPhotos.bind(apiServiceInstance),
+    uploadPropertyDocuments: apiServiceInstance.uploadPropertyDocuments.bind(apiServiceInstance),
+    deletePropertyDocument: apiServiceInstance.deletePropertyDocument.bind(apiServiceInstance),
     exportProperty: apiServiceInstance.exportProperty.bind(apiServiceInstance),
   },
   subscriptions: {

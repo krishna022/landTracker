@@ -9,8 +9,12 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { pick } from '@react-native-documents/picker';
+import { launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { theme } from '../../utils/theme';
 import { apiService } from '../../services/api';
 
@@ -85,14 +89,104 @@ const PropertyDocumentsScreen: React.FC = () => {
     );
   };
 
-  const openFilePicker = () => {
-    // TODO: Implement file picker functionality
-    Alert.alert('Info', 'File picker functionality will be implemented');
+  const requestCameraPermission = async () => {
+    try {
+      const permission = Platform.OS === 'ios' 
+        ? PERMISSIONS.IOS.CAMERA 
+        : PERMISSIONS.ANDROID.CAMERA;
+      
+      const result = await request(permission);
+      return result === RESULTS.GRANTED;
+    } catch (error) {
+      console.error('Error requesting camera permission:', error);
+      return false;
+    }
   };
 
-  const openCamera = () => {
-    // TODO: Implement camera functionality for documents
-    Alert.alert('Info', 'Camera functionality will be implemented');
+  const openFilePicker = async () => {
+    try {
+      const result = await pick({
+        type: ['*/*'], // Allow all file types
+        allowMultiSelection: false,
+      });
+
+      if (result && result.length > 0) {
+        const file = result[0];
+        handleDocumentSelected(file);
+      }
+    } catch (error: any) {
+      if (!error.message.includes('User cancelled')) {
+        console.error('Error picking document:', error);
+        Alert.alert('Error', 'Failed to pick document');
+      }
+    }
+  };
+
+  const openCamera = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert(
+        'Camera Permission Required',
+        'Please enable camera permission in settings to take photos.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    const options = {
+      mediaType: 'photo' as MediaType,
+      quality: 0.8 as any,
+      includeBase64: false,
+      storageOptions: {
+        skipBackup: true,
+        path: 'documents',
+      },
+    };
+
+    launchCamera(options, (response: ImagePickerResponse) => {
+      if (response.didCancel) {
+        console.log('User cancelled camera');
+      } else if (response.errorMessage) {
+        console.error('Camera Error: ', response.errorMessage);
+        Alert.alert('Error', 'Failed to open camera');
+      } else if (response.assets && response.assets[0]) {
+        handleDocumentSelected({
+          uri: response.assets[0].uri!,
+          name: response.assets[0].fileName || `document_${Date.now()}.jpg`,
+          type: response.assets[0].type || 'image/jpeg',
+          size: response.assets[0].fileSize || 0,
+        });
+      }
+    });
+  };
+
+  const handleDocumentSelected = async (file: any) => {
+    try {
+      setUploading(true);
+      
+      // Create FormData for upload
+      const formData = new FormData();
+      formData.append('documents', {
+        uri: file.uri,
+        type: file.type || 'application/octet-stream',
+        name: file.name || `document_${Date.now()}`,
+      });
+
+      // Upload to backend
+      const response: any = await apiService.properties.uploadPropertyDocuments(propertyId, formData);
+      
+      if (response && response.uploadedDocuments) {
+        // Add uploaded documents to local state
+        setDocuments(prev => [...prev, ...response.uploadedDocuments]);
+        Alert.alert('Success', `${response.uploadedDocuments.length} document(s) uploaded successfully`);
+      }
+      
+    } catch (error: any) {
+      console.error('Error uploading document:', error);
+      Alert.alert('Error', error.message || 'Failed to upload document');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDeleteDocument = (documentId: string) => {

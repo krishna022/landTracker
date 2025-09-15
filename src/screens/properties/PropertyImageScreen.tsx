@@ -10,8 +10,11 @@ import {
     ActivityIndicator,
     Image,
     Dimensions,
+    Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { theme } from '../../utils/theme';
 import { apiService } from '../../services/api';
 
@@ -81,14 +84,124 @@ const PropertyImageScreen: React.FC = () => {
         );
     };
 
-    const openCamera = () => {
-        // TODO: Implement camera functionality
-        Alert.alert('Info', 'Camera functionality will be implemented');
+    const requestCameraPermission = async () => {
+        try {
+            const permission = Platform.OS === 'ios' 
+                ? PERMISSIONS.IOS.CAMERA 
+                : PERMISSIONS.ANDROID.CAMERA;
+            
+            const result = await request(permission);
+            return result === RESULTS.GRANTED;
+        } catch (error) {
+            console.error('Error requesting camera permission:', error);
+            return false;
+        }
     };
 
-    const openGallery = () => {
-        // TODO: Implement gallery functionality
-        Alert.alert('Info', 'Gallery functionality will be implemented');
+    const requestGalleryPermission = async () => {
+        try {
+            const permission = Platform.OS === 'ios' 
+                ? PERMISSIONS.IOS.PHOTO_LIBRARY 
+                : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+            
+            const result = await request(permission);
+            return result === RESULTS.GRANTED;
+        } catch (error) {
+            console.error('Error requesting gallery permission:', error);
+            return false;
+        }
+    };
+
+    const openCamera = async () => {
+        const hasPermission = await requestCameraPermission();
+        if (!hasPermission) {
+            Alert.alert(
+                'Camera Permission Required',
+                'Please enable camera permission in settings to take photos.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        const options = {
+            mediaType: 'photo' as MediaType,
+            quality: 0.8 as any, // PhotoQuality type issue, using any for now
+            includeBase64: false,
+            storageOptions: {
+                skipBackup: true,
+                path: 'images',
+            },
+        };
+
+        launchCamera(options, (response: ImagePickerResponse) => {
+            if (response.didCancel) {
+                console.log('User cancelled camera');
+            } else if (response.errorMessage) {
+                console.error('Camera Error: ', response.errorMessage);
+                Alert.alert('Error', 'Failed to open camera');
+            } else if (response.assets && response.assets[0]) {
+                handleImageSelected(response.assets[0]);
+            }
+        });
+    };
+
+    const openGallery = async () => {
+        const hasPermission = await requestGalleryPermission();
+        if (!hasPermission) {
+            Alert.alert(
+                'Gallery Permission Required',
+                'Please enable gallery permission in settings to select photos.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        const options = {
+            mediaType: 'photo' as MediaType,
+            quality: 0.8 as any, // PhotoQuality type issue, using any for now
+            includeBase64: false,
+            selectionLimit: 1,
+        };
+
+        launchImageLibrary(options, (response: ImagePickerResponse) => {
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.errorMessage) {
+                console.error('ImagePicker Error: ', response.errorMessage);
+                Alert.alert('Error', 'Failed to open gallery');
+            } else if (response.assets && response.assets[0]) {
+                handleImageSelected(response.assets[0]);
+            }
+        });
+    };
+
+    const handleImageSelected = async (asset: any) => {
+        try {
+            setUploading(true);
+            
+            // Create FormData for upload
+            const formData = new FormData();
+            formData.append('photos', {
+                uri: asset.uri,
+                type: asset.type || 'image/jpeg',
+                name: asset.fileName || `image_${Date.now()}.jpg`,
+            });
+
+            // Upload to backend
+            const response: any = await apiService.properties.uploadPropertyPhotos(propertyId, formData);
+            
+            if (response && response.uploadedPhotos) {
+                // Add uploaded photos to local state
+                setImages(prev => [...prev, ...response.uploadedPhotos]);
+                Alert.alert('Success', `${response.uploadedPhotos.length} image(s) uploaded successfully`);
+            }
+            
+        } catch (error: any) {
+            console.error('Error uploading image:', error);
+            Alert.alert('Error', error.message || 'Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleDeleteImage = (imageId: string) => {
