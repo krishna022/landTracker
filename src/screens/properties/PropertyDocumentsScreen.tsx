@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,19 @@ const PropertyDocumentsScreen: React.FC = () => {
   useEffect(() => {
     fetchPropertyDocuments();
   }, []);
+
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        headerRight: () => (
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleAddDocument}
+          activeOpacity={0.8}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+        ),
+      });
+    }, [navigation]);
 
   const fetchPropertyDocuments = async () => {
     try {
@@ -181,7 +194,7 @@ const PropertyDocumentsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -202,7 +215,7 @@ const PropertyDocumentsScreen: React.FC = () => {
         >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {loading ? (
         <View style={styles.loadingContainer}>

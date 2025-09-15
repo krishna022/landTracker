@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,23 @@ const PropertiesScreen: React.FC = () => {
   useEffect(() => {
     fetchProperties();
   }, []);
+
+    useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerRight}>
+              <TouchableOpacity style={styles.viewToggle} onPress={toggleViewMode}>
+                <Text style={styles.viewToggleIcon}>
+                  {viewMode === 'grid' ? '☰' : '▦'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.addButton} onPress={handleAddProperty}>
+                <Text style={styles.addButtonIcon}>+</Text>
+              </TouchableOpacity>
+      </View>
+      ),
+    });
+  }, [navigation, viewMode]);
 
   const fetchProperties = async () => {
     try {
@@ -194,7 +211,7 @@ const PropertiesScreen: React.FC = () => {
         </View>
       ) : properties.length > 0 ? (
         <>
-          <View style={styles.header}>
+          {/* <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Text style={styles.title}>My Properties</Text>
               <Text style={styles.subtitle}>{properties.length} properties</Text>
@@ -209,7 +226,7 @@ const PropertiesScreen: React.FC = () => {
                 <Text style={styles.addButtonIcon}>+</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
 
           <FlatList
             data={properties}

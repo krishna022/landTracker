@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -57,6 +57,16 @@ const PropertyDetailScreen: React.FC = () => {
     { id: 'documents', label: 'Documents', icon: '📄' },
     { id: 'map', label: 'Map', icon: '🗺️' },
   ];
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.favoriteButton}>
+          <Text style={styles.favoriteIcon}>♡</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const renderTabContent = () => {
     switch (selectedTab) {
@@ -141,7 +151,7 @@ const PropertyDetailScreen: React.FC = () => {
                 <Text style={styles.documentArrow}>→</Text>
               </TouchableOpacity>
             ))}
-            
+
             <TouchableOpacity style={styles.addDocumentButton}>
               <Text style={styles.addDocumentIcon}>+</Text>
               <Text style={styles.addDocumentText}>Add Document</Text>
@@ -177,14 +187,14 @@ const PropertyDetailScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.favoriteButton}>
           <Text style={styles.favoriteIcon}>♡</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* Property Header */}
       <View style={styles.propertyHeader}>
@@ -216,14 +226,14 @@ const PropertyDetailScreen: React.FC = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View style={styles.actionButtons}>
+      {/* <View style={styles.actionButtons}>
         <TouchableOpacity style={styles.contactButton}>
           <Text style={styles.contactButtonText}>📞 Contact Owner</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.scheduleButton}>
           <Text style={styles.scheduleButtonText}>📅 Schedule Visit</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 };

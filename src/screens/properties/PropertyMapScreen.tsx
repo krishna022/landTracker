@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef,useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,22 @@ const PropertyMapScreen: React.FC = () => {
   useEffect(() => {
     initializeMap();
   }, []);
+
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        headerRight: () => (
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => setEditing(!editing)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.editButtonText}>
+            {editing ? 'Done' : 'Edit'}
+          </Text>
+        </TouchableOpacity>
+        ),
+      });
+    }, [navigation]);
 
   const initializeMap = () => {
     if (property && property.location) {
@@ -174,7 +190,7 @@ const PropertyMapScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -197,7 +213,7 @@ const PropertyMapScreen: React.FC = () => {
             {editing ? 'Done' : 'Edit'}
           </Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       <View style={styles.mapContainer}>
         {renderMap()}
