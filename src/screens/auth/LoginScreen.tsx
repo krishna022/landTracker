@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,12 @@ import {
   Animated,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../store/AuthContext';
 import { theme } from '../../utils/theme';
 import { ValidationUtils } from '../../utils/validation';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,6 +36,23 @@ const LoginScreen: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const { login } = useAuth();
   const navigation = useNavigation();
+  const route = useRoute();
+  
+  // Handle email verification success
+  useEffect(() => {
+    const params = route.params as any;
+    if (params?.emailVerified) {
+      Toast.show({
+        type: 'success',
+        text1: 'Email Verified!',
+        text2: 'You can now sign in with your credentials',
+      });
+      // Pre-fill email if available
+      if (params.email) {
+        setEmail(params.email);
+      }
+    }
+  }, [route.params]);
 
   const validateForm = (): boolean => {
     const result = ValidationUtils.validateLoginForm(email, password);
@@ -71,75 +88,57 @@ const LoginScreen: React.FC = () => {
     }
   };
 
+// LoginScreen.tsx - handleLogin function
   const handleLogin = async () => {
-    if (!validateForm()) {
+    if (!email || !password) {
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Please fill in all fields',
+      });
       return;
     }
 
     setLoading(true);
+
     try {
-      const authData = await login(email, password);
+      console.log('LoginScreen: Calling authContext.login with:', { email });
+      const result = await login(email, password);
       
-      // Check the user's verification and PIN status
-      const user = authData.user;
-      
-      if (!user.isEmailVerified) {
-        // Email not verified, navigate to email verification
+      if (result === null) {
+        // Email verification is required - AuthContext has set the state
+        console.log('LoginScreen: Email verification required, AuthContext has handled navigation');
+        
+        // Show a brief message before navigation
         Toast.show({
           type: 'info',
           text1: 'Email Verification Required',
-          text2: 'Please verify your email before logging in',
-          position: 'bottom'
+          text2: 'Redirecting to email verification...',
         });
         
-        // @ts-ignore - Navigation typing
-        navigation.navigate('EmailVerification', { email: user.email });
         return;
       }
       
-      if (!user.pinHash) {
-        // Email verified but no PIN set, navigate to PIN setup
-        Toast.show({
-          type: 'info',
-          text1: 'Setup Required',
-          text2: 'Please set up your 4-digit PIN for security',
-          position: 'bottom'
-        });
-        
-        // @ts-ignore - Navigation typing
-        navigation.navigate('PinSetup');
-        return;
-      }
+      console.log('LoginScreen: Login successful, result:', result);
       
-      // Email verified and PIN exists, navigate to PIN authentication
-      // @ts-ignore - Navigation typing
-      navigation.navigate('PinAuth');
+      // Success case - navigation will be handled by AuthContext/AppNavigator
+      Toast.show({
+        type: 'success',
+        text1: 'Login Successful',
+        text2: 'Welcome back!',
+      });
       
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.log('LoginScreen error details:', error);
       
-      // Check if it's an email verification error
-      if (error.response?.data?.requiresEmailVerification) {
-        Toast.show({
-          type: 'info',
-          text1: 'Email Verification Required',
-          text2: 'Please verify your email before logging in',
-          position: 'bottom'
-        });
-        
-        // @ts-ignore - Navigation typing
-        navigation.navigate('EmailVerification', { 
-          email: error.response.data.email || email 
-        });
-        return;
-      }
-      
+      // Handle other errors normally
+      console.error('LoginScreen: Login failed:', error);
       Toast.show({
         type: 'error',
         text1: 'Login Failed',
-        text2: error.message || error.response?.data?.message || 'An error occurred',
-        position: 'bottom'
+        text2: error.response?.data?.message || error.message || 'Please try again',
       });
+      
     } finally {
       setLoading(false);
     }

@@ -7,11 +7,16 @@ import { AuthTokens, ApiResponse } from '../types';
 const API_BASE_URL = 'http://10.0.2.2:3000/api';
 
 // Create axios instance
+// api.ts - Update your Axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+  },
+  validateStatus: function (status) {
+    // Allow 200-299 and 403 (for email verification)
+    return (status >= 200 && status < 300) || status === 403;
   },
 });
 
@@ -158,37 +163,62 @@ class ApiService {
   }
 
   // Auth endpoints
-  async login(credentials: any) {
-    try {
-      const response = await api.post('/auth/login', credentials);
-      const data = handleApiResponse(response) as any;
-      // Backend returns accessToken and refreshToken directly in data, not in data.tokens
-      const tokens = {
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken
-      };
-      await tokenManager.saveTokens(tokens);
-      return { data: { user: data.user, tokens } };
-    } catch (error) {
-      handleApiError(error);
-    }
-  }
+async login(credentials: any) {
+  try {
+    const response = await api.post('/auth/login', credentials);
+    
+    console.log('Login API Response:', {
+      status: response.status,
+      data: response.data,
+      requiresEmailVerification: response.data?.requiresEmailVerification
+    });
 
-  async pinLogin(credentials: any) {
-    try {
-      const response = await api.post('/auth/pin-login', credentials);
-      const data = handleApiResponse(response) as any;
-      // Backend returns accessToken and refreshToken directly in data, not in data.tokens
-      const tokens = {
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken
+    // Handle email verification required case (403 status)
+    if (response.status === 403 && response.data?.requiresEmailVerification) {
+      console.log('Email verification required case detected');
+      // Return special object for email verification
+      return { 
+        requiresEmailVerification: true,
+        message: response.data.message,
+        data: response.data // Include the full response data
       };
-      await tokenManager.saveTokens(tokens);
-      return { data: { user: data.user, tokens } };
-    } catch (error) {
-      handleApiError(error);
     }
+
+    // Handle normal successful login
+    if (response.data.success) {
+      console.log('Normal login success');
+      const data = response.data.data;
+      const tokens = data.tokens;
+      await tokenManager.saveTokens(tokens);
+      return { 
+        data: { 
+          user: data.user, 
+          tokens 
+        } 
+      };
+    }
+
+    // Handle other errors
+    console.log('Other login error:', response.data);
+    const errorObj = new Error(response.data.message || 'Login failed');
+    (errorObj as any).response = { data: response.data };
+    throw errorObj;
+
+  } catch (error: any) {
+    console.log('Login API Catch Error:', error);
+    
+    // If it's already a custom error with response data, re-throw
+    if (error.response?.data) {
+      throw error;
+    }
+    
+    // Handle network/other errors
+    handleApiError(error);
+    throw error;
   }
+}
+
+// Then in AuthContext, you don't need to change anything since it will throw the error
 
   async register(userData: any) {
     try {
@@ -518,7 +548,6 @@ export const apiService = {
   ...apiServiceInstance,
   auth: {
     login: apiServiceInstance.login.bind(apiServiceInstance),
-    pinLogin: apiServiceInstance.pinLogin.bind(apiServiceInstance),
     register: apiServiceInstance.register.bind(apiServiceInstance),
     logout: apiServiceInstance.logout.bind(apiServiceInstance),
     verifyEmail: apiServiceInstance.verifyEmail.bind(apiServiceInstance),

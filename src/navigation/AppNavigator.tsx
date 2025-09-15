@@ -24,16 +24,25 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Auth Stack
-const AuthStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Login" component={LoginScreen} />
-    <Stack.Screen name="Register" component={RegisterScreen} />
-    <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
-    <Stack.Screen name="PinLogin" component={PinLoginScreen} />
-    <Stack.Screen name="PinAuth" component={PinAuthScreen} />
-    <Stack.Screen name="PinSetup" component={PinSetupScreen} />
-  </Stack.Navigator>
-);
+const AuthStack = ({ requiresEmailVerification, emailVerificationEmail }: { requiresEmailVerification: boolean; emailVerificationEmail: string | null }) => {
+  return (
+    <Stack.Navigator 
+      screenOptions={{ headerShown: false }}
+      initialRouteName={requiresEmailVerification ? "EmailVerification" : "Login"}
+    >
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen 
+        name="EmailVerification" 
+        component={EmailVerificationScreen}
+        initialParams={emailVerificationEmail ? { email: emailVerificationEmail } : undefined}
+      />
+      <Stack.Screen name="PinLogin" component={PinLoginScreen} />
+      <Stack.Screen name="PinAuth" component={PinAuthScreen} />
+      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+    </Stack.Navigator>
+  );
+};
 
 // Properties Stack
 const PropertiesStack = () => (
@@ -154,8 +163,10 @@ const AppNavigator = () => {
           <Stack.Screen name="PinSetup" component={PinSetupScreen} />
         )
       ) : (
-        // No session, show auth flow
-        <Stack.Screen name="Auth" component={AuthStack} />
+        // No session, show auth flow (includes email verification)
+        <Stack.Screen name="Auth">
+          {() => <AuthStack requiresEmailVerification={state.requiresEmailVerification} emailVerificationEmail={state.emailVerificationEmail} />}
+        </Stack.Screen>
       )}
     </Stack.Navigator>
   );

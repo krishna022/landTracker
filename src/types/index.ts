@@ -13,6 +13,7 @@ export interface User {
   dateFormat?: string;
   pinHash?: string | null;
   pinEnabled?: boolean;
+  hasPinSetup?: boolean;
   biometricEnabled: boolean;
   deviceId?: string;
   pushToken?: string;

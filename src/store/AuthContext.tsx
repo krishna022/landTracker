@@ -16,12 +16,13 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   tokens: AuthTokens | null;
+  requiresEmailVerification: boolean;
+  emailVerificationEmail: string | null;
 }
 
 interface AuthContextType {
   state: AuthState;
-  login: (email: string, password: string) => Promise<{ user: User; tokens: AuthTokens }>;
-  loginWithPin: (pin: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ user: User; tokens: AuthTokens } | null>;
   register: (userData: RegisterData) => Promise<{ user: User }>;
   verifyEmail: (email: string, code: string) => Promise<{ user: User; tokens: AuthTokens }>;
   setupPin: (pin: string, biometricEnabled?: boolean) => Promise<{ user: User }>;
@@ -38,7 +39,8 @@ type AuthAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_USER'; payload: User | null }
   | { type: 'SET_TOKENS'; payload: AuthTokens | null }
-  | { type: 'LOGOUT' };
+  | { type: 'LOGOUT' }
+  | { type: 'SET_EMAIL_VERIFICATION'; payload: { required: boolean; email: string | null } };
 
 // Initial state
 const initialState: AuthState = {
@@ -46,6 +48,8 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: true,
   tokens: null,
+  requiresEmailVerification: false,
+  emailVerificationEmail: null,
 };
 
 // Auth reducer
@@ -62,6 +66,13 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       };
     case 'SET_TOKENS':
       return { ...state, tokens: action.payload };
+    case 'SET_EMAIL_VERIFICATION':
+      return { 
+        ...state, 
+        requiresEmailVerification: action.payload.required,
+        emailVerificationEmail: action.payload.email,
+        isLoading: false
+      };
     case 'LOGOUT':
       return { ...initialState, isLoading: false };
     default:
@@ -104,52 +115,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (email: string, password: string) => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      
-      const response = await apiService.auth.login({
-        email,
-        password,
-      });
-      
-      const authData = response?.data as { user: User; tokens: AuthTokens };
-      
-      // Store user data and tokens but don't set as authenticated yet
-      // Authentication will be completed after PIN setup or PIN validation
-      await AsyncStorage.setItem('auth_user', JSON.stringify(authData.user));
-      await AsyncStorage.setItem('auth_tokens', JSON.stringify(authData.tokens));
-      
-      dispatch({ type: 'SET_LOADING', payload: false });
-      
-      // Return the data so the navigation can decide what to do next
-      return authData;
-    } catch (error) {
-      dispatch({ type: 'SET_LOADING', payload: false });
-      throw error;
-    }
-  };
+// AuthContext.tsx - login function
+const login = async (email: string, password: string) => {
+  try {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    console.log('AuthContext login called with:', { email });
+    
+    const response = await apiService.auth.login({
+      email,
+      password,
+    });
+    
+    console.log('AuthContext login response:', response);
 
-  const loginWithPin = async (pin: string) => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
+    // Check if this is the email verification required case
+    if (response?.requiresEmailVerification) {
+      console.log('Email verification required in AuthContext');
       
-      const response = await apiService.auth.pinLogin({
-        pin,
+      // Set the email verification state instead of throwing an error
+      dispatch({ 
+        type: 'SET_EMAIL_VERIFICATION', 
+        payload: { required: true, email: email } 
       });
       
-      const authData = response?.data as { user: User; tokens: AuthTokens };
+      // Return a resolved promise with null to indicate email verification needed
+      return null;
+    }
+
+    // Normal success case - should have response.data
+    if (response?.data) {
+      const authData = response.data as { user: User; tokens: AuthTokens };
       
-      dispatch({ type: 'SET_USER', payload: authData.user });
-      dispatch({ type: 'SET_TOKENS', payload: authData.tokens });
-      
+      console.log('Normal login success in AuthContext');
+
+      // Store user data and tokens
       await AsyncStorage.setItem('auth_user', JSON.stringify(authData.user));
       await AsyncStorage.setItem('auth_tokens', JSON.stringify(authData.tokens));
-    } catch (error) {
+      
       dispatch({ type: 'SET_LOADING', payload: false });
-      throw error;
+      
+      return authData;
     }
-  };
+
+    // If we get here, something unexpected happened
+    throw new Error('Unexpected response from login API');
+
+  } catch (error) {
+    console.log('AuthContext login error:', error);
+    dispatch({ type: 'SET_LOADING', payload: false });
+    throw error;
+  }
+};
 
   const register = async (userData: RegisterData) => {
     try {
@@ -280,7 +297,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const value: AuthContextType = {
     state,
     login,
-    loginWithPin,
     register,
     verifyEmail,
     setupPin,
