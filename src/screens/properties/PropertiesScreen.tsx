@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,54 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../../utils/theme';
+import { apiService } from '../../services/api';
 
 const { width } = Dimensions.get('window');
 
 const PropertiesScreen: React.FC = () => {
   const navigation = useNavigation();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const properties: any[] = []; // This will come from API later
+  const [properties, setProperties] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching properties...');
+      const response: any = await apiService.properties.getProperties();
+      console.log('Properties fetched:', response);
+      
+      if (response && Array.isArray(response)) {
+        setProperties(response);
+      } else if (response && response.properties && Array.isArray(response.properties)) {
+        setProperties(response.properties);
+      } else {
+        setProperties([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching properties:', error);
+      Alert.alert('Error', 'Failed to load properties');
+      setProperties([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchProperties();
+  };
 
   const handleAddProperty = () => {
     // @ts-ignore - Navigation typing
@@ -25,7 +63,22 @@ const PropertiesScreen: React.FC = () => {
 
   const handlePropertyPress = (property: any) => {
     // @ts-ignore - Navigation typing
-    navigation.navigate('PropertyDetail', { propertyId: property.id });
+    navigation.navigate('PropertyDetail', { propertyId: property._id || property.id });
+  };
+
+  const handlePropertyImages = (property: any) => {
+    // @ts-ignore - Navigation typing
+    navigation.navigate('PropertyImages', { propertyId: property._id || property.id, property });
+  };
+
+  const handlePropertyMap = (property: any) => {
+    // @ts-ignore - Navigation typing
+    navigation.navigate('PropertyMap', { propertyId: property._id || property.id, property });
+  };
+
+  const handlePropertyDocuments = (property: any) => {
+    // @ts-ignore - Navigation typing
+    navigation.navigate('PropertyDocuments', { propertyId: property._id || property.id, property });
   };
 
   const toggleViewMode = () => {
@@ -33,6 +86,56 @@ const PropertiesScreen: React.FC = () => {
   };
 
   const renderPropertyItem = ({ item }: { item: any }) => {
+    const propertyName = item.title || item.name || 'Unnamed Property';
+    const propertyLocation = item.city && item.state ? `${item.city}, ${item.state}` : 
+                           item.city ? item.city : 
+                           item.state ? item.state : 'Location not specified';
+    const propertyArea = item.area ? 
+                        (typeof item.area === 'object' ? 
+                         `${item.area.value} ${item.area.unit}` : 
+                         item.area) : 
+                        'Area not specified';
+
+    const renderActionIcons = () => (
+      <View style={styles.actionIconsRow}>
+        <TouchableOpacity 
+          style={styles.actionIcon} 
+          onPress={() => handlePropertyPress(item)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.actionIconText}>👁️</Text>
+          <Text style={styles.actionIconLabel}>View</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionIcon} 
+          onPress={() => handlePropertyImages(item)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.actionIconText}>🖼️</Text>
+          <Text style={styles.actionIconLabel}>Images</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionIcon} 
+          onPress={() => handlePropertyMap(item)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.actionIconText}>🗺️</Text>
+          <Text style={styles.actionIconLabel}>Map</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionIcon} 
+          onPress={() => handlePropertyDocuments(item)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.actionIconText}>📄</Text>
+          <Text style={styles.actionIconLabel}>Docs</Text>
+        </TouchableOpacity>
+      </View>
+    );
+
     if (viewMode === 'grid') {
       return (
         <TouchableOpacity 
@@ -44,14 +147,15 @@ const PropertiesScreen: React.FC = () => {
             <Text style={styles.propertyImageIcon}>🏞️</Text>
           </View>
           <View style={styles.propertyInfo}>
-            <Text style={styles.propertyName} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.propertyLocation} numberOfLines={1}>{item.location}</Text>
+            <Text style={styles.propertyName} numberOfLines={1}>{propertyName}</Text>
+            <Text style={styles.propertyLocation} numberOfLines={1}>{propertyLocation}</Text>
             <View style={styles.propertyMeta}>
-              <Text style={styles.propertyArea}>{item.area} sq ft</Text>
+              <Text style={styles.propertyArea}>{propertyArea}</Text>
               <View style={styles.propertyStatus}>
                 <Text style={styles.propertyStatusText}>Active</Text>
               </View>
             </View>
+            {renderActionIcons()}
           </View>
         </TouchableOpacity>
       );
@@ -67,9 +171,10 @@ const PropertiesScreen: React.FC = () => {
           <Text style={styles.propertyImageIcon}>🏞️</Text>
         </View>
         <View style={styles.listPropertyInfo}>
-          <Text style={styles.propertyName}>{item.name}</Text>
-          <Text style={styles.propertyLocation}>{item.location}</Text>
-          <Text style={styles.propertyArea}>{item.area} sq ft</Text>
+          <Text style={styles.propertyName}>{propertyName}</Text>
+          <Text style={styles.propertyLocation}>{propertyLocation}</Text>
+          <Text style={styles.propertyArea}>{propertyArea}</Text>
+          {renderActionIcons()}
         </View>
         <View style={styles.propertyActions}>
           <TouchableOpacity style={styles.actionButton}>
@@ -82,26 +187,43 @@ const PropertiesScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {properties.length > 0 ? (
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.title}>My Properties</Text>
-          <Text style={styles.subtitle}>{properties.length} properties</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Loading properties...</Text>
         </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.viewToggle} onPress={toggleViewMode}>
-            <Text style={styles.viewToggleIcon}>
-              {viewMode === 'grid' ? '☰' : '▦'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddProperty}>
-            <Text style={styles.addButtonIcon}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      ): null}
+      ) : properties.length > 0 ? (
+        <>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.title}>My Properties</Text>
+              <Text style={styles.subtitle}>{properties.length} properties</Text>
+            </View>
+            <View style={styles.headerRight}>
+              <TouchableOpacity style={styles.viewToggle} onPress={toggleViewMode}>
+                <Text style={styles.viewToggleIcon}>
+                  {viewMode === 'grid' ? '☰' : '▦'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.addButton} onPress={handleAddProperty}>
+                <Text style={styles.addButtonIcon}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-      {properties.length === 0 ? (
+          <FlatList
+            data={properties}
+            renderItem={renderPropertyItem}
+            keyExtractor={(item) => item._id || item.id || Math.random().toString()}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            key={viewMode}
+            numColumns={viewMode === 'grid' ? 2 : 1}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        </>
+      ) : (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIllustration}>
             <Text style={styles.emptyIcon}>🏞️</Text>
@@ -133,16 +255,6 @@ const PropertiesScreen: React.FC = () => {
             </View>
           </View>
         </View>
-      ) : (
-        <FlatList
-          data={properties}
-          renderItem={renderPropertyItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          key={viewMode}
-          numColumns={viewMode === 'grid' ? 2 : 1}
-        />
       )}
     </SafeAreaView>
   );
@@ -405,6 +517,45 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.onSurface,
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: theme.colors.onSurface,
+    opacity: 0.8,
+  },
+  actionIconsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.outline,
+    opacity: 0.8,
+  },
+  actionIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    minWidth: 50,
+  },
+  actionIconText: {
+    fontSize: 20,
+    marginBottom: 2,
+  },
+  actionIconLabel: {
+    fontSize: 10,
+    color: theme.colors.onSurface,
+    opacity: 0.7,
+    fontWeight: '500',
   },
 });
 

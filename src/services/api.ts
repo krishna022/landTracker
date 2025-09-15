@@ -1,10 +1,14 @@
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { AuthTokens, ApiResponse } from '../types';
 
 // For now, we'll use a default API URL. In production, this should come from environment variables
-// Use local IP for iOS simulator, 10.0.2.2 for Android emulator to access localhost on host machine
-const API_BASE_URL = __DEV__ ? 'http://10.0.2.2:3000/api' : 'https://your-production-api.com/api';
+// Use 10.0.2.2 for Android emulator to access localhost on host machine
+// Use localhost for iOS simulator
+const API_BASE_URL = Platform.OS === 'android' 
+  ? 'http://10.0.2.2:3000/api' 
+  : 'http://localhost:3000/api';
 
 // Create axios instance
 // api.ts - Update your Axios instance
@@ -85,13 +89,27 @@ const tokenManager = TokenManager.getInstance();
 // Request interceptor to add auth token
 api.interceptors.request.use(
   async (config) => {
-    const token = tokenManager.getAccessToken();
+    let token = tokenManager.getAccessToken();
+    
+    // If no token in memory, try to load from storage
+    if (!token) {
+      try {
+        const loadedTokens = await tokenManager.loadTokens();
+        if (loadedTokens) {
+          token = loadedTokens.accessToken;
+        }
+      } catch (error) {
+        console.error('Request interceptor: Error loading tokens:', error);
+      }
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -107,9 +125,25 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      const refreshToken = tokenManager.getRefreshToken();
+      let refreshToken = tokenManager.getRefreshToken();
+      
+      // If no refresh token in memory, try to load from storage
+      if (!refreshToken) {
+        console.log('Response interceptor: No refresh token in memory, loading from storage');
+        try {
+          const loadedTokens = await tokenManager.loadTokens();
+          if (loadedTokens) {
+            refreshToken = loadedTokens.refreshToken;
+            console.log('Response interceptor: Refresh token loaded from storage');
+          }
+        } catch (loadError) {
+          console.error('Response interceptor: Error loading tokens:', loadError);
+        }
+      }
+      
       if (refreshToken) {
         try {
+          console.log('Response interceptor: Attempting token refresh');
           const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
             refreshToken
           });
@@ -117,15 +151,19 @@ api.interceptors.response.use(
           const newTokens = response.data.data;
           await tokenManager.saveTokens(newTokens);
           
+          console.log('Response interceptor: Token refresh successful, retrying request');
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
           return api(originalRequest);
         } catch (refreshError) {
+          console.error('Response interceptor: Token refresh failed:', refreshError);
           // Refresh failed, clear tokens and redirect to login
           await tokenManager.clearTokens();
           // Emit event for logout
           return Promise.reject(refreshError);
         }
+      } else {
+        console.log('Response interceptor: No refresh token available');
       }
     }
     
@@ -551,6 +589,34 @@ async login(credentials: any) {
       handleApiError(error);
     }
   }
+
+  // Location endpoints
+  async getCountries() {
+    try {
+      const response = await api.get('/country');
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  async getStatesByCountry(countryId: string) {
+    try {
+      const response = await api.get(`/state/country/${countryId}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  async getCitiesByState(stateId: string) {
+    try {
+      const response = await api.get(`/city/state/${stateId}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
 }
 
 // Create a structured API service instance with grouped methods
@@ -592,6 +658,11 @@ export const apiService = {
     createPaymentOrder: apiServiceInstance.createPaymentOrder.bind(apiServiceInstance),
     verifyPayment: apiServiceInstance.verifyPayment.bind(apiServiceInstance),
     cancelSubscription: apiServiceInstance.cancelSubscription.bind(apiServiceInstance),
+  },
+  locations: {
+    getCountries: apiServiceInstance.getCountries.bind(apiServiceInstance),
+    getStatesByCountry: apiServiceInstance.getStatesByCountry.bind(apiServiceInstance),
+    getCitiesByState: apiServiceInstance.getCitiesByState.bind(apiServiceInstance),
   }
 };
 
