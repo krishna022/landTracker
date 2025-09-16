@@ -10,6 +10,9 @@ import {
   Dimensions,
   Platform,
   LogBox,
+  Modal,
+  ScrollView,
+  Linking,
 } from 'react-native';
 import MapView, {
   Marker,
@@ -52,9 +55,10 @@ const PropertyMapScreen: React.FC = () => {
   const { propertyId, property } = route.params as RouteParams;
   const mapRef = useRef<MapView>(null);
 
-  const [mapType, setMapType] = useState<MapType>('standard');
+  const [mapType, setMapType] = useState<MapType>('satellite');
   const [loading, setLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<Region | null>(null);
+  const [propertyLoading, setPropertyLoading] = useState(true); // Track property data loading
 
   // Drawing and editing modes
   const [drawingMode, setDrawingMode] = useState(false);
@@ -64,6 +68,9 @@ const PropertyMapScreen: React.FC = () => {
 
   // Property outline coordinates
   const [coordinates, setCoordinates] = useState<any[]>([]);
+
+  // Bottom slide for property details
+  const [showPropertyDetails, setShowPropertyDetails] = useState(false);
 
   // Map region with default location
   const [region, setRegion] = useState<Region>({
@@ -83,6 +90,18 @@ const PropertyMapScreen: React.FC = () => {
               headerRight: () => (
         <View style={styles.headerButtons}>
           <TouchableOpacity
+            style={styles.headerIconButton}
+            onPress={() => setShowPropertyDetails(true)}
+          >
+            <Text style={styles.headerIconText}>ℹ️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerIconButton}
+            onPress={openNavigation}
+          >
+            <Text style={styles.headerIconText}>🧭</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.mapTypeButton}
             onPress={() => setMapType((t) => (t === 'standard' ? 'satellite' : 'standard'))}
           >
@@ -99,36 +118,76 @@ const PropertyMapScreen: React.FC = () => {
       }, [navigation, mapType, drawingMode, editingMode]);
 
   const initializeMap = () => {
-    if (property && property.location && property.location.coordinates) {
-      const { coordinates } = property.location;
+    console.log('Initializing map with property:', property);
+    console.log('Property ID:', propertyId);
+
+    setPropertyLoading(true);
+
+    // Check for property location (could be location or locationPoint)
+    const propertyLocation = property?.location?.coordinates || property?.locationPoint?.coordinates;
+
+    if (property && propertyLocation) {
+      console.log('Found property location:', propertyLocation);
 
       const initialRegion = {
-        latitude: coordinates[1],
-        longitude: coordinates[0],
+        latitude: propertyLocation[1], // GeoJSON: [lng, lat] so lat is index 1
+        longitude: propertyLocation[0], // GeoJSON: [lng, lat] so lng is index 0
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       };
       setRegion(initialRegion);
+      console.log('Set map region to property location:', initialRegion);
 
       // Initialize coordinates for outline if available
       if (property.outline && property.outline.coordinates && property.outline.coordinates[0]) {
-        const outlineCoords = property.outline.coordinates[0].map((coord: number[]) => ({
-          latitude: coord[1],
-          longitude: coord[0],
-        }));
-        setCoordinates(outlineCoords);
-        // Also set boundary points for editing
-        const boundaryPts = outlineCoords.map((coord: any, index: number) => ({
-          latitude: coord.latitude,
-          longitude: coord.longitude,
-          id: `pt-${Date.now()}-${index}`,
-        }));
-        setBoundaryPoints(boundaryPts);
+        console.log('Loading existing property outline:', property.outline);
+        console.log('Outline coordinates array:', property.outline.coordinates[0]);
+        try {
+          const outlineCoords = property.outline.coordinates[0].map((coord: number[]) => ({
+            latitude: coord[1],
+            longitude: coord[0],
+          }));
+
+          console.log('Raw GeoJSON coordinates sample:', property.outline.coordinates[0].slice(0, 3));
+          console.log('Converted coordinates sample:', outlineCoords.slice(0, 3));
+
+          // Remove the closing coordinate if it exists (GeoJSON often includes it)
+          if (outlineCoords.length > 1 &&
+              outlineCoords[0].latitude === outlineCoords[outlineCoords.length - 1].latitude &&
+              outlineCoords[0].longitude === outlineCoords[outlineCoords.length - 1].longitude) {
+            console.log('Removing duplicate closing coordinate');
+            outlineCoords.pop();
+          }
+
+          console.log('Final converted outline coordinates:', outlineCoords.length, 'points');
+          setCoordinates(outlineCoords);
+
+          // Also set boundary points for editing
+          const boundaryPts = outlineCoords.map((coord: any, index: number) => ({
+            latitude: coord.latitude,
+            longitude: coord.longitude,
+            id: `pt-${Date.now()}-${index}`,
+          }));
+          setBoundaryPoints(boundaryPts);
+          console.log('Set boundary points for editing:', boundaryPts.length, 'points');
+        } catch (error) {
+          console.error('Error loading property outline:', error);
+          Alert.alert('Warning', 'Could not load existing property outline. You can draw a new one.');
+        }
+      } else {
+        console.log('No existing outline found for property');
+        // Clear any existing coordinates
+        setCoordinates([]);
+        setBoundaryPoints([]);
       }
     } else {
-      // If no property location, keep the default region
       console.log('No property location available, using default region');
+      // Clear coordinates if no property
+      setCoordinates([]);
+      setBoundaryPoints([]);
     }
+
+    setPropertyLoading(false);
   };
 
   const getCurrentLocation = async () => {
@@ -164,9 +223,9 @@ const PropertyMapScreen: React.FC = () => {
     }
   };
 
-  // Stable id generator
+  // Stable id generator - improved for better React key stability
   const makeId = (idx?: number) =>
-    `pt-${Date.now()}-${Math.round(Math.random() * 1e6)}${idx != null ? `-${idx}` : ''}`;
+    `pt-${idx != null ? idx : 0}-${Math.round(Math.random() * 1e6)}`;
 
   // Add a point (assign id here so every point has an id)
   const pushPoint = (coord: { latitude: number; longitude: number }) => {
@@ -239,12 +298,24 @@ const PropertyMapScreen: React.FC = () => {
         setDrawingMode(false);
       }
     } else {
-      // Start drawing
-      setBoundaryPoints([]);
-      setCoordinates([]);
-      setDrawingMode(true);
-      setEditingMode(false);
-      setIsDrawing(false);
+      // Check if we have existing outline to edit
+      if (coordinates.length > 2 && !boundaryPoints.length) {
+        // Edit existing outline
+        setBoundaryPoints(coordinates.map((coord: any, index: number) => ({
+          latitude: coord.latitude,
+          longitude: coord.longitude,
+          id: `pt-${Date.now()}-${index}`,
+        })));
+        setEditingMode(true);
+        setDrawingMode(false);
+      } else {
+        // Start new drawing
+        setBoundaryPoints([]);
+        setCoordinates([]);
+        setDrawingMode(true);
+        setEditingMode(false);
+        setIsDrawing(false);
+      }
     }
   };
 
@@ -273,27 +344,40 @@ const PropertyMapScreen: React.FC = () => {
     setCoordinates(smoothedPoints);
   };
 
-  // Editing marker drag
+  // Editing marker drag - improved for better performance
   const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; longitude: number }) => {
+    console.log('Drag event:', index, newCoordinate); // Debug log
+
+    // Validate coordinate
+    if (!newCoordinate || typeof newCoordinate.latitude !== 'number' || typeof newCoordinate.longitude !== 'number') {
+      console.warn('Invalid coordinate received:', newCoordinate);
+      return;
+    }
+
     setBoundaryPoints((prev) => {
-      const updated = prev.map((p, i) =>
-        i === index
-          ? { ...p, latitude: newCoordinate.latitude, longitude: newCoordinate.longitude }
-          : p
-      );
-      return [...updated];
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = {
+          ...updated[index],
+          latitude: newCoordinate.latitude,
+          longitude: newCoordinate.longitude,
+          // Ensure ID remains stable for React key consistency
+          id: updated[index].id
+        };
+      }
+      return updated;
     });
     setCoordinates((prev) => {
-      const updated = prev.map((coord, i) =>
-        i === index
-          ? { latitude: newCoordinate.latitude, longitude: newCoordinate.longitude }
-          : coord
-      );
-      return [...updated];
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = {
+          latitude: newCoordinate.latitude,
+          longitude: newCoordinate.longitude
+        };
+      }
+      return updated;
     });
-  };
-
-  const handleSaveOutline = async () => {
+  };  const handleSaveOutline = async () => {
     if (boundaryPoints.length < 3) {
       Alert.alert('Error', 'Please add at least 3 points to create a valid outline');
       return;
@@ -303,7 +387,13 @@ const PropertyMapScreen: React.FC = () => {
       setLoading(true);
 
       // Convert coordinates back to GeoJSON format
+      // GeoJSON requires the first and last coordinates to be the same to close the polygon
       const geoJsonCoordinates = boundaryPoints.map(coord => [coord.longitude, coord.latitude]);
+
+      // Close the polygon by adding the first point as the last point
+      if (geoJsonCoordinates.length > 0) {
+        geoJsonCoordinates.push(geoJsonCoordinates[0]);
+      }
 
       const updateData = {
         outline: {
@@ -312,14 +402,30 @@ const PropertyMapScreen: React.FC = () => {
         },
       };
 
-      await apiService.properties.updateProperty(propertyId, updateData);
+      console.log('Saving outline for property:', propertyId);
+      console.log('Update data:', updateData);
 
-      Alert.alert('Success', 'Property outline updated successfully');
-      setDrawingMode(false);
-      setEditingMode(false);
+      const result = await apiService.properties.updateProperty(propertyId, updateData);
+
+      if (result) {
+        Alert.alert('Success', 'Property outline updated successfully');
+
+        // Update local coordinates state to reflect the saved outline
+        const updatedCoordinates = boundaryPoints.map(coord => ({
+          latitude: coord.latitude,
+          longitude: coord.longitude
+        }));
+        setCoordinates(updatedCoordinates);
+
+        // Exit editing mode
+        setDrawingMode(false);
+        setEditingMode(false);
+      } else {
+        throw new Error('Update failed');
+      }
     } catch (error: any) {
       console.error('Error updating outline:', error);
-      Alert.alert('Error', 'Failed to update property outline');
+      Alert.alert('Error', 'Failed to update property outline. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -378,15 +484,38 @@ const PropertyMapScreen: React.FC = () => {
     }
   };
 
+  // Open navigation in external maps app
+  const openNavigation = () => {
+    const locationCoords = property?.location?.coordinates || property?.locationPoint?.coordinates;
+    if (!locationCoords) {
+      Alert.alert('Error', 'Property location not available for navigation');
+      return;
+    }
+
+    const latitude = locationCoords[1];
+    const longitude = locationCoords[0];
+    const label = property?.title || property?.name || 'Property';
+
+    const url = Platform.OS === 'ios'
+      ? `maps:///?daddr=${latitude},${longitude}&dirflg=d&t=m`
+      : `geo:${latitude},${longitude}?q=${latitude},${longitude}(${label})`;
+
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'Unable to open maps application');
+    });
+  };
+
   // Polygon coordinates for MapView
   const polygonCoordinates = boundaryPoints.map((p) => ({ latitude: p.latitude, longitude: p.longitude }));
 
   const renderMap = () => {
-    if (!region) {
+    if (!region || propertyLoading) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading map...</Text>
+          <Text style={styles.loadingText}>
+            {propertyLoading ? 'Loading property data...' : 'Loading map...'}
+          </Text>
         </View>
       );
     }
@@ -408,31 +537,51 @@ const PropertyMapScreen: React.FC = () => {
         scrollEnabled={!drawingMode && !editingMode}
         rotateEnabled={!drawingMode && !editingMode}
         pitchEnabled={!drawingMode && !editingMode}
-        onTouchStart={startDrawing}
-        onTouchEnd={stopDrawing}
+        onTouchStart={editingMode ? undefined : startDrawing}
+        onTouchEnd={editingMode ? undefined : stopDrawing}
       >
         {/* Property marker */}
-        {property && property.location && (
-          <Marker
-            coordinate={{
-              latitude: property.location.coordinates[1],
-              longitude: property.location.coordinates[0],
-            }}
-            title={property.title || property.name}
-            description={property.description}
-            pinColor="#4CAF50"
-          />
-        )}
+        {property && (property.location || property.locationPoint) && (() => {
+          const locationCoords = property.location?.coordinates || property.locationPoint?.coordinates;
+          return locationCoords ? (
+            <Marker
+              coordinate={{
+                latitude: locationCoords[1],
+                longitude: locationCoords[0],
+              }}
+              title={property.title || property.name}
+              description={property.description}
+              pinColor="#4CAF50"
+            />
+          ) : null;
+        })()}
 
-        {/* Property outline polygon */}
-        {coordinates.length > 2 && !drawingMode && (
-          <Polygon
-            coordinates={coordinates}
-            strokeColor={theme.colors.primary}
-            fillColor={`${theme.colors.primary}20`}
-            strokeWidth={2}
-          />
-        )}
+        {/* Property outline polygon - existing saved outline */}
+        {coordinates.length > 2 && !drawingMode && !editingMode && (() => {
+          console.log('Rendering existing outline polygon with coordinates:', coordinates.length, 'points');
+          console.log('First few coordinates:', coordinates.slice(0, 3));
+          return (
+            <Polygon
+              coordinates={coordinates}
+              strokeColor={theme.colors.primary}
+              fillColor={`${theme.colors.primary}15`}
+              strokeWidth={3}
+            />
+          );
+        })()}
+
+        {/* Property outline polygon - when in editing mode */}
+        {coordinates.length > 2 && editingMode && (() => {
+          console.log('Rendering editing mode polygon with coordinates:', coordinates.length, 'points');
+          return (
+            <Polygon
+              coordinates={coordinates}
+              strokeColor="#2196F3"
+              fillColor="rgba(33, 150, 243, 0.1)"
+              strokeWidth={2}
+            />
+          );
+        })()}
 
         {/* Live polyline while drawing */}
         {isDrawing && polygonCoordinates.length > 1 && (
@@ -453,19 +602,28 @@ const PropertyMapScreen: React.FC = () => {
           ))} */}
 
         {/* Draggable small blue dots in edit mode */}
-        {editingMode &&
-          boundaryPoints.map((p, i) => (
-            <Marker
-              key={p.id}
-              coordinate={{ latitude: p.latitude, longitude: p.longitude }}
-              draggable
-              onDragEnd={(e) => handleMarkerDrag(i, e.nativeEvent.coordinate)}
-              anchor={{ x: 0.5, y: 0.5 }}
-              tracksViewChanges={false}
-            >
-              <View style={styles.smallBlueDot} />
-            </Marker>
-          ))}
+        {editingMode && boundaryPoints.length > 0 && (
+          <>
+            {console.log('Rendering markers:', boundaryPoints.length)}
+            {boundaryPoints.map((p, i) => (
+              <Marker
+                key={i} // Use simple index key for reliability
+                coordinate={{ latitude: p.latitude, longitude: p.longitude }}
+                draggable
+                onDragStart={() => console.log('Drag started for marker', i)}
+                onDrag={(e) => console.log('Dragging marker', i, e.nativeEvent.coordinate)}
+                onDragEnd={(e) => {
+                  console.log('Raw drag event:', e.nativeEvent); // Debug raw event
+                  handleMarkerDrag(i, e.nativeEvent.coordinate);
+                }}
+                anchor={{ x: 0.5, y: 0.5 }}
+                tracksViewChanges={false}
+              >
+                <View style={styles.smallBlueDot} />
+              </Marker>
+            ))}
+          </>
+        )}
       </MapView>
     );
   };
@@ -499,11 +657,11 @@ const PropertyMapScreen: React.FC = () => {
             onPress={toggleDrawingMode}
           >
             <Text style={styles.controlButtonText}>
-              {drawingMode ? '✅ Finish Drawing' : '✏️ Draw Outline'}
+              {drawingMode ? '✅ Finish Drawing' : (coordinates.length > 2 ? '🖌️ Edit Outline' : '✏️ Draw Outline')}
             </Text>
           </TouchableOpacity>
 
-          {boundaryPoints.length >= 3 && (
+          {boundaryPoints.length >= 3 && !coordinates.length && (
             <TouchableOpacity
               style={[styles.controlButton, editingMode && styles.activeControlButton]}
               onPress={toggleEditMode}
@@ -520,33 +678,143 @@ const PropertyMapScreen: React.FC = () => {
             </TouchableOpacity>
           )}
 
-          {boundaryPoints.length >= 3 && (
-            <TouchableOpacity style={styles.controlButton} onPress={handleSaveOutline}>
-              <Text style={styles.controlButtonText}>💾 Save</Text>
+          {boundaryPoints.length >= 3 && !coordinates.length && (
+            <TouchableOpacity
+              style={[styles.controlButton, loading && styles.disabledButton]}
+              onPress={handleSaveOutline}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={theme.colors.onPrimary} />
+              ) : (
+                <Text style={styles.controlButtonText}>💾 Save</Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Compass/Directions Overlay */}
+        <View style={styles.compassOverlay}>
+          <View style={styles.compassContainer}>
+            <Text style={styles.compassText}>N</Text>
+            <View style={styles.compassLines}>
+              <View style={styles.compassLine} />
+              <View style={[styles.compassLine, styles.compassLineHorizontal]} />
+              <View style={styles.compassLine} />
+              <View style={[styles.compassLine, styles.compassLineHorizontal]} />
+            </View>
+            <Text style={[styles.compassText, styles.compassTextS]}>S</Text>
+          </View>
+          <View style={styles.compassLabels}>
+            <Text style={[styles.compassLabel, styles.compassLabelW]}>W</Text>
+            <Text style={[styles.compassLabel, styles.compassLabelE]}>E</Text>
+          </View>
+        </View>
       </View>
 
-      <View style={styles.legend}>
-        <Text style={styles.legendTitle}>Property Information</Text>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: '#4CAF50' }]} />
-          <Text style={styles.legendText}>Property Location</Text>
+      {/* Property Details Bottom Slide */}
+      <Modal
+        visible={showPropertyDetails}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowPropertyDetails(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Property Details</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowPropertyDetails(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Name:</Text>
+                <Text style={styles.detailValue}>{property?.title || property?.name || 'Not specified'}</Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Description:</Text>
+                <Text style={styles.detailValue}>{property?.description || 'No description available'}</Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Location:</Text>
+                <Text style={styles.detailValue}>
+                  {(() => {
+                    const locationCoords = property?.location?.coordinates || property?.locationPoint?.coordinates;
+                    return locationCoords ? `${locationCoords[1].toFixed(6)}, ${locationCoords[0].toFixed(6)}` : 'Not set';
+                  })()}
+                </Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Area:</Text>
+                <Text style={styles.detailValue}>
+                  {property?.area ? `${property.area.value} ${property.area.unit}` : 'Not set'}
+                </Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Status:</Text>
+                <Text style={styles.detailValue}>{property?.status || 'Unknown'}</Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Type:</Text>
+                <Text style={styles.detailValue}>{property?.type || 'Not specified'}</Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Price:</Text>
+                <Text style={styles.detailValue}>
+                  {property?.price ? `${property.price.currency} ${property.price.amount}` : 'Not set'}
+                </Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Outline Points:</Text>
+                <Text style={styles.detailValue}>
+                  {coordinates.length > 0 ? `${coordinates.length} points` : 'No outline available'}
+                </Text>
+              </View>
+
+              {property?.neighbors && property.neighbors.length > 0 && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailLabel}>Neighbors:</Text>
+                  {property.neighbors.map((neighbor: any, index: number) => (
+                    <Text key={index} style={styles.detailValue}>
+                      {neighbor.name || neighbor.title || `Neighbor ${index + 1}`} ({neighbor.direction || 'Unknown direction'})
+                    </Text>
+                  ))}
+                </View>
+              )}
+
+              {property?.createdAt && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailLabel}>Created:</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(property.createdAt).toLocaleDateString()}
+                  </Text>
+                </View>
+              )}
+
+              {property?.updatedAt && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailLabel}>Last Updated:</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(property.updatedAt).toLocaleDateString()}
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: '#FF0000' }]} />
-          <Text style={styles.legendText}>
-            {isDrawing ? 'Drawing' : editingMode ? 'Editing' : 'Outline'} ({boundaryPoints.length} pts)
-          </Text>
-        </View>
-        <Text style={styles.infoText}>
-          Location: {property?.location?.coordinates ? `${property.location.coordinates[1].toFixed(6)}, ${property.location.coordinates[0].toFixed(6)}` : 'Not set'}
-        </Text>
-        <Text style={styles.infoText}>
-          Area: {property?.area ? `${property.area.value} ${property.area.unit}` : 'Not set'}
-        </Text>
-      </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -585,6 +853,19 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: 'row',
     gap: 8,
+  },
+  headerIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  headerIconText: {
+    fontSize: 18,
+    color: theme.colors.onSurface,
   },
   mapTypeButton: {
     backgroundColor: theme.colors.primary,
@@ -717,6 +998,130 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 238, 0, 0.95)',
     borderWidth: 2,
     borderColor: '#fff',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: Dimensions.get('window').height * 0.7,
+    minHeight: Dimensions.get('window').height * 0.4,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.outline,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.onSurface,
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: theme.colors.surfaceVariant,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: theme.colors.onSurfaceVariant,
+    fontWeight: 'bold',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  detailSection: {
+    marginBottom: 16,
+  },
+  detailLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.onSurface,
+    marginBottom: 4,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: theme.colors.onSurfaceVariant,
+    lineHeight: 22,
+  },
+  compassOverlay: {
+    position: 'absolute',
+    bottom: 70,
+    right: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 8,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  compassContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compassText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.onSurface,
+    textAlign: 'center',
+  },
+  compassTextS: {
+    marginTop: 2,
+  },
+  compassLines: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+  },
+  compassLine: {
+    width: 20,
+    height: 2,
+    backgroundColor: theme.colors.onSurface,
+    marginHorizontal: 2,
+  },
+  compassLineHorizontal: {
+    width: 2,
+    height: 20,
+    position: 'absolute',
+  },
+  compassLabels: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 60,
+    marginTop: 4,
+    position: 'relative',
+  },
+  compassLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.onSurface,
+    position: 'absolute',
+  },
+  compassLabelW: {
+    left: 0,
+  },
+  compassLabelE: {
+    right: 0,
   },
 });
 

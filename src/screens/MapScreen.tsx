@@ -126,9 +126,9 @@ const MapScreen: React.FC = () => {
     }
   };
 
-  // stable id generator
+  // stable id generator - improved for better React key stability
 const makeId = (idx?: number) =>
-  `pt-${Date.now()}-${Math.round(Math.random() * 1e6)}${idx != null ? `-${idx}` : ''}`;
+  `pt-${idx != null ? idx : 0}-${Math.round(Math.random() * 1e6)}`;
 
   // ---------- Drawing handlers (preserve your working approach) ----------
   // Add a point (assign id here so every point has an id)
@@ -144,11 +144,27 @@ const makeId = (idx?: number) =>
     }
   };
 
-  // Called on map pan drag (continuous)
+  // Called on long press for precise point placement
+  const handleMapLongPress = (event: any) => {
+    if (drawingMode && !editingMode) {
+      const { coordinate } = event.nativeEvent;
+      pushPoint(coordinate);
+      // Provide haptic feedback for precise placement
+      Alert.alert('Point Added', `Added precise point at: ${coordinate.latitude.toFixed(6)}, ${coordinate.longitude.toFixed(6)}`);
+    }
+  };
+
+  // Called on map pan drag (continuous) - improved for more precision
   const handleMapDrag = (event: any) => {
     if (drawingMode && !editingMode && isDrawing) {
       const { coordinate } = event.nativeEvent;
-      pushPoint(coordinate);
+      // Add more points for smoother boundaries by reducing distance threshold
+      const lastPoint = boundaryPoints[boundaryPoints.length - 1];
+      if (!lastPoint ||
+          Math.abs(coordinate.latitude - lastPoint.latitude) > 0.00001 ||
+          Math.abs(coordinate.longitude - lastPoint.longitude) > 0.00001) {
+        pushPoint(coordinate);
+      }
     }
   };
 
@@ -237,15 +253,28 @@ const smoothPath = (tolerance: number = 0.0002) => {
   setBoundaryPoints(smoothedPoints);
 };
 
-  // ---------- Editing marker drag ----------
+  // ---------- Editing marker drag - improved for better performance ----------
 const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; longitude: number }) => {
+  console.log('Drag event:', index, newCoordinate); // Debug log
+
+  // Validate coordinate
+  if (!newCoordinate || typeof newCoordinate.latitude !== 'number' || typeof newCoordinate.longitude !== 'number') {
+    console.warn('Invalid coordinate received:', newCoordinate);
+    return;
+  }
+
   setBoundaryPoints((prev) => {
-    const updated = prev.map((p, i) =>
-      i === index
-        ? { ...p, latitude: newCoordinate.latitude, longitude: newCoordinate.longitude }
-        : p
-    );
-    return [...updated]; // ✅ return a *new array reference* to trigger re-render
+    const updated = [...prev];
+    if (updated[index]) {
+      updated[index] = {
+        ...updated[index],
+        latitude: newCoordinate.latitude,
+        longitude: newCoordinate.longitude,
+        // Ensure ID remains stable for React key consistency
+        id: updated[index].id
+      };
+    }
+    return updated;
   });
 };
 
@@ -387,6 +416,7 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
             showsUserLocation={!drawingMode} // HIDE user blue dot while drawing (prevent overlap)
             showsMyLocationButton={false}
             onPress={handleMapPress}
+            onLongPress={handleMapLongPress}
             onPanDrag={handleMapDrag}
             onRegionChangeComplete={(r) => setRegion(r)}
             onMapReady={() => setTimeout(() => setRegion(region), 0)}
@@ -394,8 +424,8 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
             scrollEnabled={!drawingMode && !editingMode}
             rotateEnabled={!drawingMode && !editingMode}
             pitchEnabled={!drawingMode && !editingMode}
-            onTouchStart={startDrawing}
-            onTouchEnd={stopDrawing}
+            onTouchStart={editingMode ? undefined : startDrawing}
+            onTouchEnd={editingMode ? undefined : stopDrawing}
           >
             {properties.map(renderPropertyMarker)}
             {properties.map(renderPropertyBoundary)}
@@ -419,19 +449,28 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
               ))} */}
 
             {/* draggable small blue dots in edit mode */}
-            {editingMode &&
-              boundaryPoints.map((p, i) => (
-                <Marker
-                  key={p.id}
-                  coordinate={{ latitude: p.latitude, longitude: p.longitude }}
-                  draggable
-                  onDragEnd={(e) => handleMarkerDrag(i, e.nativeEvent.coordinate)}
-                  anchor={{ x: 0.5, y: 0.5 }}
-                  tracksViewChanges={false} 
-                  >
-                  <View style={styles.smallBlueDot} />
-                </Marker>
-              ))}
+            {editingMode && boundaryPoints.length > 0 && (
+              <>
+                {console.log('Rendering markers:', boundaryPoints.length)}
+                {boundaryPoints.map((p, i) => (
+                  <Marker
+                    key={i} // Use simple index key for reliability
+                    coordinate={{ latitude: p.latitude, longitude: p.longitude }}
+                    draggable
+                    onDragStart={() => console.log('Drag started for marker', i)}
+                    onDrag={(e) => console.log('Dragging marker', i, e.nativeEvent.coordinate)}
+                    onDragEnd={(e) => {
+                      console.log('Raw drag event:', e.nativeEvent); // Debug raw event
+                      handleMarkerDrag(i, e.nativeEvent.coordinate);
+                    }}
+                    anchor={{ x: 0.5, y: 0.5 }}
+                    tracksViewChanges={false} // Revert to false for compatibility
+                    >
+                    <View style={styles.smallBlueDot} />
+                  </Marker>
+                ))}
+              </>
+            )}
 
           </MapView>
         )}
@@ -484,6 +523,11 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
           <View style={[styles.legendColor, { backgroundColor: '#FF0000' }]} />
           <Text style={styles.legendText}>{isDrawing ? 'Drawing' : editingMode ? 'Editing' : 'Boundary'} ({boundaryPoints.length} pts)</Text>
         </View>
+        {drawingMode && (
+          <View style={styles.legendItem}>
+            <Text style={styles.legendText}>💡 Long press for precise points</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
