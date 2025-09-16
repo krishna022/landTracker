@@ -489,7 +489,7 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
   );
 };
 
-const dotSize = 12;
+const dotSize = 14;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderColor: theme.colors.outline },
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center' },
   legendColor: { width: 16, height: 16, borderRadius: 8, marginRight: 8 },
   legendText: { fontSize: 14, color: theme.colors.onSurface },
-  smallRedDot: { width: dotSize/2, height: dotSize/2, borderRadius: dotSize / 2, backgroundColor: 'rgba(255,0,0,0.95)', borderWidth: 1, borderColor: 'rgba(255,0,0,0.95)', elevation: 3 },
+  smallRedDot: { width: dotSize, height: dotSize, borderRadius: dotSize / 2, backgroundColor: 'rgba(255,0,0,0.95)', borderWidth: 2, borderColor: 'rgba(255,0,0,0.95)', elevation: 3 },
   smallBlueDot: { width: dotSize, height: dotSize, borderRadius: dotSize / 2, backgroundColor: 'rgba(255, 238, 0, 0.95)', borderWidth: 2, borderColor: '#fff', elevation: 3 },
 });
 
