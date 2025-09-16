@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useAuth } from '../store/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { theme } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
@@ -22,8 +22,14 @@ const ProfileScreen: React.FC = () => {
 const handleLogout = async () => {
   try {
     await logout();
-    // Don't navigate here - the AppNavigator will automatically redirect
-    // based on the auth state change
+    
+    // Use reset to clear the entire navigation stack and go to Login
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Auth' }], // Reset to Auth stack
+      })
+    );
   } catch (error) {
     console.error('Logout error:', error);
   }

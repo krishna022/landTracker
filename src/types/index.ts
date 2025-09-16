@@ -354,3 +354,33 @@ export interface UserStats {
     features: SubscriptionFeatures;
   } | null;
 }
+
+// Navigation Types
+export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  Permissions: undefined;
+  EmailVerification: { email: string };
+  PinAuth: undefined;
+  PinSetup: { userData: { user: User; tokens: AuthTokens } };
+  Dashboard: undefined;
+  Properties: undefined;
+  PropertyDetail: { propertyId: string; property?: Property };
+  AddProperty: undefined;
+  PropertyImage: { propertyId: string; property?: Property };
+  PropertyMap: { propertyId: string; property?: Property };
+  PropertyDocuments: { propertyId: string; property?: Property };
+  PropertyNeighbors: { propertyId: string; property?: Property };
+  Map: undefined;
+  Profile: undefined;
+  Settings: undefined;
+};
+
+export type AuthStackParamList = {
+  Permissions: undefined;
+  Login: undefined;
+  Register: undefined;
+  EmailVerification: { email: string };
+  PinAuth: undefined;
+  PinSetup: { userData: { user: User; tokens: AuthTokens } };
+};

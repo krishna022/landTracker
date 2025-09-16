@@ -6,6 +6,7 @@ import { Text } from 'react-native';
 
 import { useAuth } from '../store/AuthContext';
 import LoadingScreen from '../screens/LoadingScreen';
+import PermissionScreen from '../screens/PermissionScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import EmailVerificationScreen from '../screens/auth/EmailVerificationScreen';
@@ -27,16 +28,31 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Auth Stack
-const AuthStack = ({ requiresEmailVerification, emailVerificationEmail }: { requiresEmailVerification: boolean; emailVerificationEmail: string | null }) => {
+const AuthStack = ({
+  requiresEmailVerification,
+  emailVerificationEmail,
+  permissionsCompleted
+}: {
+  requiresEmailVerification: boolean;
+  emailVerificationEmail: string | null;
+  permissionsCompleted: boolean;
+}) => {
+  const initialRouteName = !permissionsCompleted
+    ? "Permissions"
+    : requiresEmailVerification
+    ? "EmailVerification"
+    : "Login";
+
   return (
-    <Stack.Navigator 
+    <Stack.Navigator
       screenOptions={{ headerShown: false }}
-      initialRouteName={requiresEmailVerification ? "EmailVerification" : "Login"}
+      initialRouteName={initialRouteName}
     >
+      <Stack.Screen name="Permissions" component={PermissionScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen 
-        name="EmailVerification" 
+      <Stack.Screen
+        name="EmailVerification"
         component={EmailVerificationScreen}
         initialParams={emailVerificationEmail ? { email: emailVerificationEmail } : undefined}
       />
@@ -145,6 +161,7 @@ const AppNavigator = () => {
   const { state } = useAuth();
   const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
   const [requiresPinAuth, setRequiresPinAuth] = useState<boolean>(false);
+  const [permissionsCompleted, setPermissionsCompleted] = useState<boolean>(false);
 
   useEffect(() => {
     checkInitialSession();
@@ -152,6 +169,10 @@ const AppNavigator = () => {
 
   const checkInitialSession = async () => {
     try {
+      // Check if permissions have been completed
+      const permissionsStatus = await AsyncStorage.getItem('permissions_completed');
+      setPermissionsCompleted(permissionsStatus === 'true');
+
       // Check if we have user data
       const userData = await AsyncStorage.getItem('auth_user');
       
@@ -179,29 +200,35 @@ const AppNavigator = () => {
     return <LoadingScreen />;
   }
 
-// AppNavigator.tsx - Make sure the navigation logic correctly handles logout
-return (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    {state.isAuthenticated && state.user?.hasPinSetup ? (
-      // User is fully authenticated and has PIN setup, show main app
-      <>
-        <Stack.Screen name="Main" component={MainTabs} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-      </>
-    ) : state.isAuthenticated && !state.user?.hasPinSetup ? (
-      // User is authenticated but needs PIN setup (from login)
-      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
-    ) : state.requiresEmailVerification ? (
-      // Email verification required
-      <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
-    ) : (
-      // No session, show auth flow
-      <Stack.Screen name="Auth">
-        {() => <AuthStack requiresEmailVerification={state.requiresEmailVerification} emailVerificationEmail={state.emailVerificationEmail} />}
-      </Stack.Screen>
-    )}
-  </Stack.Navigator>
-);
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {state.isAuthenticated && state.user?.hasPinSetup ? (
+        // User is fully authenticated and has PIN setup, show main app
+        <>
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+        </>
+      ) : state.isAuthenticated && !state.user?.hasPinSetup ? (
+        // User is authenticated but needs PIN setup (from login)
+        <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+      ) : state.requiresEmailVerification ? (
+        // Email verification required
+        <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
+      ) : requiresPinAuth ? (
+        // Case 2: User needs to enter PIN (app reopened)
+        <Stack.Screen name="PinAuth" component={PinAuthScreen} />
+      ) : (
+        // No session, show auth flow
+        <Stack.Screen name="Auth">
+          {() => <AuthStack
+            requiresEmailVerification={state.requiresEmailVerification}
+            emailVerificationEmail={state.emailVerificationEmail}
+            permissionsCompleted={permissionsCompleted}
+          />}
+        </Stack.Screen>
+      )}
+    </Stack.Navigator>
+  );
 };
 
 export default AppNavigator;
