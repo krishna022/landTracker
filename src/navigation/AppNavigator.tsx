@@ -23,6 +23,11 @@ import PropertyNeighborsScreen from '../screens/properties/PropertyNeighborsScre
 import MapScreen from '../screens/MapScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import HelpSupportScreen from '../screens/HelpSupportScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -207,6 +212,11 @@ const AppNavigator = () => {
         <>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+          <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
         </>
       ) : state.isAuthenticated && !state.user?.hasPinSetup ? (
         // User is authenticated but needs PIN setup (from login)

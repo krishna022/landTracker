@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -82,29 +82,6 @@ const PropertiesScreen: React.FC = () => {
       console.log('Search container should be hidden now');
     }
   }, [showSearch]);
-
-    useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.viewToggle} onPress={toggleViewMode}>
-                <Text style={styles.viewToggleIcon}>
-                  {viewMode === 'grid' ? `▦` : '☰'}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.searchButton} onPress={toggleSearch}>
-                <Text style={styles.searchButtonIcon}>🔍</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton} onPress={toggleFilter}>
-                <Text style={styles.filterButtonIcon}>⚙️</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.addButton} onPress={handleAddProperty}>
-                <Text style={styles.addButtonIcon}>+</Text>
-              </TouchableOpacity>
-      </View>
-      ),
-    });
-  }, [navigation, viewMode, showSearch, showFilter, screenWidth]);
 
   const fetchProperties = async () => {
     try {
@@ -349,86 +326,158 @@ const PropertiesScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading properties...</Text>
+      {/* Header with Stats */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>My Properties</Text>
+          <Text style={styles.subtitle}>
+            {filteredProperties.length > 0 ? filteredProperties.length : properties.length} properties
+          </Text>
         </View>
-      ) : (filteredProperties.length > 0 ? filteredProperties : properties).length > 0 ? (
-        <View style={[styles.mainContent, showSearch && styles.mainContentWithSearch]}>
-          {showSearch && (
-            <View style={styles.searchContainer}>
-              <Text style={styles.debugText}>🔍 SEARCH BAR VISIBLE - showSearch: {showSearch ? 'TRUE' : 'FALSE'}</Text>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search properties by name, city, or state..."
-                value={searchText}
-                onChangeText={handleSearch}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-          )}
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.viewToggle} onPress={toggleViewMode}>
+            <Text style={styles.viewToggleIcon}>
+              {viewMode === 'grid' ? '▦' : '☰'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.searchButton} onPress={toggleSearch}>
+            <Text style={styles.searchButtonIcon}>🔍</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.filterButton} onPress={toggleFilter}>
+            <Text style={styles.filterButtonIcon}>⚙️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddProperty}>
+            <Text style={styles.addButtonIcon}>+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-          <FlatList
-            style={styles.flatList}
-            data={filteredProperties.length > 0 ? filteredProperties : properties}
-            renderItem={renderPropertyItem}
-            keyExtractor={(item) => item._id || item.id || Math.random().toString()}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-            key={viewMode}
-            numColumns={getNumColumns()}
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-          />
-        </View>
-      ) : (
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIllustration}>
-            <Text style={styles.emptyIcon}>🏞️</Text>
-          </View>
-          <Text style={styles.emptyTitle}>
-            {properties.length === 0 ? 'No Properties Yet' : 'No Properties Match Filters'}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            {properties.length === 0 
-              ? 'Start building your property portfolio by adding your first property'
-              : 'Try adjusting your search or filter criteria'
-            }
-          </Text>
-          {properties.length === 0 ? (
-            <TouchableOpacity style={styles.primaryButton} onPress={handleAddProperty}>
-              <Text style={styles.primaryButtonText}>Add Your First Property</Text>
-              <Text style={styles.primaryButtonIcon}>→</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.primaryButton} onPress={clearFilters}>
-              <Text style={styles.primaryButtonText}>Clear Filters</Text>
-              <Text style={styles.primaryButtonIcon}>↻</Text>
-            </TouchableOpacity>
-          )}
-          
-          <View style={styles.featuresContainer}>
-            <Text style={styles.featuresTitle}>What you can track:</Text>
-            <View style={styles.featuresList}>
-              <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>📍</Text>
-                <Text style={styles.featureText}>Property location & boundaries</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>📄</Text>
-                <Text style={styles.featureText}>Important documents</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>💰</Text>
-                <Text style={styles.featureText}>Value tracking & analytics</Text>
-              </View>
-            </View>
+      {/* Search Bar */}
+      {showSearch && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search properties by name, city, or state..."
+              value={searchText}
+              onChangeText={handleSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholderTextColor={theme.colors.onSurface + '60'}
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearSearchButton}
+                onPress={() => setSearchText('')}
+              >
+                <Text style={styles.clearSearchIcon}>✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       )}
-      
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingAnimation}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
+          <Text style={styles.loadingText}>Loading your properties...</Text>
+        </View>
+      ) : (filteredProperties.length > 0 ? filteredProperties : properties).length > 0 ? (
+        <FlatList
+          style={styles.flatList}
+          data={filteredProperties.length > 0 ? filteredProperties : properties}
+          renderItem={renderPropertyItem}
+          keyExtractor={(item) => item._id || item.id || Math.random().toString()}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          key={viewMode}
+          numColumns={getNumColumns()}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          ListHeaderComponent={
+            properties.length > 0 ? (
+              <View style={styles.statsContainer}>
+                <View style={styles.statCard}>
+                  <Text style={styles.statNumber}>{properties.length}</Text>
+                  <Text style={styles.statLabel}>Total Properties</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <Text style={styles.statNumber}>
+                    {properties.filter(p => p.status === 'active').length}
+                  </Text>
+                  <Text style={styles.statLabel}>Active</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <Text style={styles.statNumber}>
+                    {new Set(properties.map(p => p.state).filter(Boolean)).size}
+                  </Text>
+                  <Text style={styles.statLabel}>States</Text>
+                </View>
+              </View>
+            ) : null
+          }
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIllustration}>
+            <Text style={styles.emptyIcon}>�</Text>
+            <View style={styles.emptyDecoration}>
+              <Text style={styles.emptyDecorationIcon}>✨</Text>
+            </View>
+          </View>
+          <Text style={styles.emptyTitle}>
+            {properties.length === 0 ? 'Welcome to Land Tracker!' : 'No Properties Found'}
+          </Text>
+          <Text style={styles.emptySubtitle}>
+            {properties.length === 0
+              ? 'Start building your property portfolio by adding your first property. Track locations, documents, and values all in one place.'
+              : 'Try adjusting your search criteria or clear filters to see all your properties.'
+            }
+          </Text>
+
+          <View style={styles.emptyActions}>
+            {properties.length === 0 ? (
+              <TouchableOpacity style={styles.primaryButton} onPress={handleAddProperty}>
+                <Text style={styles.primaryButtonText}>Add Your First Property</Text>
+                <Text style={styles.primaryButtonIcon}>→</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.secondaryButton} onPress={clearFilters}>
+                <Text style={styles.secondaryButtonText}>Clear Filters</Text>
+                <Text style={styles.secondaryButtonIcon}>↻</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {properties.length === 0 && (
+            <View style={styles.featuresContainer}>
+              <Text style={styles.featuresTitle}>What you can track:</Text>
+              <View style={styles.featuresGrid}>
+                <View style={styles.featureCard}>
+                  <Text style={styles.featureIcon}>📍</Text>
+                  <Text style={styles.featureText}>Property locations & boundaries</Text>
+                </View>
+                <View style={styles.featureCard}>
+                  <Text style={styles.featureIcon}>📄</Text>
+                  <Text style={styles.featureText}>Important documents & deeds</Text>
+                </View>
+                <View style={styles.featureCard}>
+                  <Text style={styles.featureIcon}>💰</Text>
+                  <Text style={styles.featureText}>Value tracking & market insights</Text>
+                </View>
+                <View style={styles.featureCard}>
+                  <Text style={styles.featureIcon}>🏘️</Text>
+                  <Text style={styles.featureText}>Nearby properties & neighbors</Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+      )}
+
       <Modal
         visible={showFilter}
         animationType="slide"
@@ -457,7 +506,7 @@ const PropertiesScreen: React.FC = () => {
                   <TouchableOpacity
                     key={state}
                     style={[styles.filterOption, filters.state === state && styles.filterOptionActive]}
-                    onPress={() => setFilters({...filters, state})}
+                    onPress={() => setFilters({...filters, state: state})}
                   >
                     <Text style={[styles.filterOptionText, filters.state === state && styles.filterOptionTextActive]}>{state}</Text>
                   </TouchableOpacity>
@@ -499,7 +548,7 @@ const PropertiesScreen: React.FC = () => {
                   <TouchableOpacity
                     key={status}
                     style={[styles.filterOption, filters.status === status && styles.filterOptionActive]}
-                    onPress={() => setFilters({...filters, status})}
+                    onPress={() => setFilters({...filters, status: status})}
                   >
                     <Text style={[styles.filterOptionText, filters.status === status && styles.filterOptionTextActive]}>{status}</Text>
                   </TouchableOpacity>
@@ -527,45 +576,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  mainContent: {
-    flex: 1,
-  },
-  mainContentWithSearch: {
-    paddingTop: 120, // Add padding to account for absolute positioned search container
-  },
-  flatList: {
-    flex: 1,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 24,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: theme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.outline + '20',
   },
   headerLeft: {
     flex: 1,
   },
   headerRight: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 4,
+    color: theme.colors.onSurface,
+    marginBottom: 2,
   },
   subtitle: {
     fontSize: 14,
-    color: theme.colors.onSurface,
+    color: theme.colors.onSurfaceVariant,
     opacity: 0.8,
   },
   viewToggle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.surface,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: theme.colors.shadow,
@@ -575,8 +619,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   viewToggleIcon: {
-    fontSize: 18,
-    color: theme.colors.onSurface,
+    fontSize: 16,
+    color: theme.colors.onSurfaceVariant,
   },
   addButton: {
     width: 44,
@@ -589,18 +633,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 6,
   },
   addButtonIcon: {
-    fontSize: 24,
+    fontSize: 20,
     color: theme.colors.onPrimary,
     fontWeight: 'bold',
   },
   searchButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.surface,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: theme.colors.shadow,
@@ -610,14 +654,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   searchButtonIcon: {
-    fontSize: 18,
-    color: theme.colors.onSurface,
+    fontSize: 16,
+    color: theme.colors.onSurfaceVariant,
   },
   filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.surface,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: theme.colors.shadow,
@@ -627,101 +671,79 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   filterButtonIcon: {
-    fontSize: 18,
-    color: theme.colors.onSurface,
-  },
-  emptyContainer: {
-    marginTop: 80,
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  emptyIllustration: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: theme.colors.primaryContainer,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  emptyIcon: {
-    fontSize: 48,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
     fontSize: 16,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-    opacity: 0.8,
+    color: theme.colors.onSurfaceVariant,
   },
-  primaryButton: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 16,
+  searchContainer: {
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.outline + '20',
+  },
+  searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    marginBottom: 40,
+    backgroundColor: theme.colors.surfaceVariant,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    height: 48,
   },
-  primaryButtonText: {
-    color: theme.colors.onPrimary,
+  searchIcon: {
     fontSize: 16,
-    fontWeight: 'bold',
+    color: theme.colors.onSurfaceVariant,
     marginRight: 8,
   },
-  primaryButtonIcon: {
-    color: theme.colors.onPrimary,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  featuresContainer: {
-    width: '100%',
-    maxWidth: 300,
-  },
-  featuresTitle: {
+  searchInput: {
+    flex: 1,
     fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-    textAlign: 'center',
+    color: theme.colors.onSurface,
+    paddingVertical: 0,
   },
-  featuresList: {
+  clearSearchButton: {
+    padding: 4,
+  },
+  clearSearchIcon: {
+    fontSize: 16,
+    color: theme.colors.onSurfaceVariant,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     gap: 12,
   },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    padding: 16,
-    borderRadius: 12,
-  },
-  featureIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  featureText: {
+  statCard: {
     flex: 1,
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: theme.colors.onSurfaceVariant,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '600',
+  },
+  flatList: {
+    flex: 1,
   },
   listContainer: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 0,
   },
   gridPropertyCard: {
     flex: 1,
@@ -731,9 +753,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.outline + '10',
   },
   listPropertyCard: {
     backgroundColor: theme.colors.surface,
@@ -743,9 +767,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.outline + '10',
   },
   propertyImagePlaceholder: {
     height: 120,
@@ -759,11 +785,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primaryContainer,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 12,
+    margin: 16,
     borderRadius: 12,
   },
   propertyImageIcon: {
     fontSize: 32,
+    opacity: 0.7,
   },
   propertyInfo: {
     padding: 16,
@@ -777,12 +804,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: theme.colors.onSurface,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   propertyLocation: {
     fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
+    color: theme.colors.onSurfaceVariant,
     marginBottom: 8,
   },
   propertyMeta: {
@@ -791,20 +817,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   propertyArea: {
-    fontSize: 12,
+    fontSize: 13,
     color: theme.colors.primary,
     fontWeight: '600',
   },
   propertyStatus: {
     backgroundColor: theme.colors.primaryContainer,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   propertyStatusText: {
-    fontSize: 10,
+    fontSize: 11,
     color: theme.colors.onPrimaryContainer,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   propertyActions: {
     padding: 16,
@@ -823,18 +851,6 @@ const styles = StyleSheet.create({
     color: theme.colors.onSurface,
     fontWeight: 'bold',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-  },
   actionIconsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -842,8 +858,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.outline,
-    opacity: 0.8,
+    borderTopColor: theme.colors.outline + '30',
   },
   actionIcon: {
     alignItems: 'center',
@@ -853,43 +868,184 @@ const styles = StyleSheet.create({
     minWidth: 50,
   },
   actionIconText: {
-    fontSize: 20,
+    fontSize: 18,
     marginBottom: 2,
   },
   actionIconLabel: {
     fontSize: 10,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
+    color: theme.colors.onSurfaceVariant,
     fontWeight: '500',
   },
-  searchContainer: {
-    position: 'absolute',
-    top: 60, // Position below the header
-    left: 0,
-    right: 0,
-    height: 100, // Fixed height to ensure visibility
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFE4B5', // Temporary bright color to make it visible
-    borderBottomWidth: 2,
-    borderBottomColor: '#FF6B35', // Temporary bright border
-    zIndex: 1000, // Ensure it's on top
-  },
-  searchInput: {
-    height: 44,
-    borderWidth: 1,
-    borderColor: theme.colors.outline,
-    borderRadius: 22,
-    paddingHorizontal: 16,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: theme.colors.background,
-    color: theme.colors.onSurface,
-    fontSize: 16,
   },
-  debugText: {
-    color: 'red',
+  loadingAnimation: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  loadingText: {
+    marginTop: 16,
     fontSize: 16,
-    marginBottom: 8,
+    color: theme.colors.onSurface,
+    opacity: 0.8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: theme.colors.background,
+  },
+  emptyIllustration: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: theme.colors.primaryContainer,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+    position: 'relative',
+  },
+  emptyIcon: {
+    fontSize: 56,
+  },
+  emptyDecoration: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyDecorationIcon: {
+    fontSize: 20,
+    color: theme.colors.onPrimary,
+  },
+  emptyTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: theme.colors.onSurface,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: theme.colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+    opacity: 0.8,
+  },
+  emptyActions: {
+    width: '100%',
+    maxWidth: 280,
+    marginBottom: 40,
+  },
+  primaryButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  primaryButtonText: {
+    color: theme.colors.onPrimary,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  primaryButtonIcon: {
+    color: theme.colors.onPrimary,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  secondaryButton: {
+    backgroundColor: theme.colors.secondaryContainer,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  secondaryButtonText: {
+    color: theme.colors.onSecondaryContainer,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  secondaryButtonIcon: {
+    color: theme.colors.onSecondaryContainer,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  featuresContainer: {
+    width: '100%',
+    maxWidth: 320,
+  },
+  featuresTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.onSurface,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  featuresGrid: {
+    gap: 12,
+  },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  featureIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  featureText: {
+    flex: 1,
+    fontSize: 14,
+    color: theme.colors.onSurface,
+    opacity: 0.8,
   },
   modalOverlay: {
     flex: 1,

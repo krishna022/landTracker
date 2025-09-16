@@ -39,37 +39,37 @@ const handleLogout = async () => {
     {
       icon: '👤',
       label: 'Edit Profile',
-      onPress: () => console.log('Edit Profile'),
+      onPress: () => navigation.navigate('EditProfile' as never),
       color: '#4CAF50',
     },
     {
       icon: '⚙️',
       label: 'Settings',
-      onPress: () => console.log('Settings'),
+      onPress: () => navigation.navigate('Settings' as never),
       color: '#2196F3',
     },
     {
       icon: '💳',
       label: 'Subscription',
-      onPress: () => console.log('Subscription'),
+      onPress: () => navigation.navigate('Subscription' as never),
       color: '#FF9800',
     },
     {
       icon: '📊',
       label: 'Analytics',
-      onPress: () => console.log('Analytics'),
+      onPress: () => navigation.navigate('Analytics' as never),
       color: '#9C27B0',
     },
     {
       icon: '🎯',
       label: 'Notifications',
-      onPress: () => console.log('Notifications'),
+      onPress: () => navigation.navigate('Notifications' as never),
       color: '#E91E63',
     },
     {
       icon: '❓',
       label: 'Help & Support',
-      onPress: () => console.log('Help'),
+      onPress: () => navigation.navigate('HelpSupport' as never),
       color: '#607D8B',
     },
   ];

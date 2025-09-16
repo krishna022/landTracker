@@ -373,7 +373,12 @@ export type RootStackParamList = {
   PropertyNeighbors: { propertyId: string; property?: Property };
   Map: undefined;
   Profile: undefined;
+  EditProfile: undefined;
   Settings: undefined;
+  Subscription: undefined;
+  Analytics: undefined;
+  Notifications: undefined;
+  HelpSupport: undefined;
 };
 
 export type AuthStackParamList = {
