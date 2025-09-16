@@ -12,7 +12,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { theme } from '../../utils/theme';
 import { apiService } from '../../services/api';
 
@@ -63,6 +63,13 @@ const PropertiesScreen: React.FC = () => {
   useEffect(() => {
     applyFilters();
   }, [properties, searchText, filters]);
+
+  // Refresh properties when screen comes into focus (e.g., returning from PropertyNeighborsScreen)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProperties();
+    }, [])
+  );
 
   useEffect(() => {
     console.log('showSearch changed:', showSearch);

@@ -7,17 +7,17 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 import { theme } from '../../utils/theme';
 import { apiService } from '../../services/api';
 
 const PropertyNeighborsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { propertyId, property } = route.params as any;
+  const { propertyId, property } = route.params as any || {};
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -31,27 +31,61 @@ const PropertyNeighborsScreen: React.FC = () => {
   });
 
   useEffect(() => {
-    if (property?.neighbor) {
-      setNeighbors(property.neighbor);
+    if (property && property.neighbors && Array.isArray(property.neighbors)) {
+      const neighborsData: any = {};
+      property.neighbors.forEach((neighbor: any) => {
+        if (neighbor.direction && neighbor.name) {
+          neighborsData[neighbor.direction.toLowerCase()] = neighbor.name;
+        }
+      });
+      setNeighbors(neighborsData);
     }
   }, [property]);
 
   const handleSave = async () => {
+    if (!propertyId) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Property ID is missing',
+      });
+      return;
+    }
+
     try {
       setSaving(true);
 
+      // Convert flat neighbors object to array format expected by API
+      const neighborsArray = Object.entries(neighbors)
+        .filter(([direction, name]) => name.trim() !== '')
+        .map(([direction, name]) => ({
+          name: name.trim(),
+          direction: direction
+        }));
+
       const updateData = {
-        neighbor: neighbors
+        neighbors: neighborsArray
       };
 
       await apiService.properties.updateProperty(propertyId, updateData);
 
-      Alert.alert('Success', 'Neighbor information updated successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Neighbor information updated successfully',
+      });
+
+      // Navigate back after a short delay to allow toast to be visible
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1500);
     } catch (error: any) {
       console.error('Error updating neighbors:', error);
-      Alert.alert('Error', 'Failed to update neighbor information');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update neighbor information',
+      });
     } finally {
       setSaving(false);
     }
@@ -77,7 +111,7 @@ const PropertyNeighborsScreen: React.FC = () => {
         maxLength={200}
       />
       <Text style={styles.charCount}>
-        {neighbors[direction].length}/200
+        {(neighbors[direction] || '').length}/200
       </Text>
     </View>
   );

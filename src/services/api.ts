@@ -672,6 +672,7 @@ export const apiService = {
     updateProperty: apiServiceInstance.updateProperty.bind(apiServiceInstance),
     deleteProperty: apiServiceInstance.deleteProperty.bind(apiServiceInstance),
     uploadPropertyPhotos: apiServiceInstance.uploadPropertyPhotos.bind(apiServiceInstance),
+    deletePropertyPhoto: apiServiceInstance.deletePropertyPhoto.bind(apiServiceInstance),
     uploadPropertyDocuments: apiServiceInstance.uploadPropertyDocuments.bind(apiServiceInstance),
     deletePropertyDocument: apiServiceInstance.deletePropertyDocument.bind(apiServiceInstance),
     exportProperty: apiServiceInstance.exportProperty.bind(apiServiceInstance),

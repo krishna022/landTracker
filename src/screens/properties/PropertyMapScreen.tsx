@@ -26,6 +26,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Geolocation from '@react-native-community/geolocation';
 import simplify from 'simplify-js';
+import Toast from 'react-native-toast-message';
 import { theme } from '../../utils/theme';
 import { apiService } from '../../services/api';
 
@@ -172,7 +173,11 @@ const PropertyMapScreen: React.FC = () => {
           console.log('Set boundary points for editing:', boundaryPts.length, 'points');
         } catch (error) {
           console.error('Error loading property outline:', error);
-          Alert.alert('Warning', 'Could not load existing property outline. You can draw a new one.');
+          Toast.show({
+            type: 'error',
+            text1: 'Warning',
+            text2: 'Could not load existing property outline. You can draw a new one.',
+          });
         }
       } else {
         console.log('No existing outline found for property');
@@ -294,7 +299,11 @@ const PropertyMapScreen: React.FC = () => {
           },
         ]);
       } else {
-        Alert.alert('Error', 'Please draw at least 3 points to create an outline');
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Please draw at least 3 points to create an outline',
+        });
         setDrawingMode(false);
       }
     } else {
@@ -379,7 +388,11 @@ const PropertyMapScreen: React.FC = () => {
     });
   };  const handleSaveOutline = async () => {
     if (boundaryPoints.length < 3) {
-      Alert.alert('Error', 'Please add at least 3 points to create a valid outline');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please add at least 3 points to create a valid outline',
+      });
       return;
     }
 
@@ -408,7 +421,11 @@ const PropertyMapScreen: React.FC = () => {
       const result = await apiService.properties.updateProperty(propertyId, updateData);
 
       if (result) {
-        Alert.alert('Success', 'Property outline updated successfully');
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Property outline updated successfully',
+        });
 
         // Update local coordinates state to reflect the saved outline
         const updatedCoordinates = boundaryPoints.map(coord => ({
@@ -425,7 +442,11 @@ const PropertyMapScreen: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error updating outline:', error);
-      Alert.alert('Error', 'Failed to update property outline. Please try again.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update property outline. Please try again.',
+      });
     } finally {
       setLoading(false);
     }
@@ -455,7 +476,11 @@ const PropertyMapScreen: React.FC = () => {
   // Map helpers
   const toggleEditMode = () => {
     if (boundaryPoints.length < 3) {
-      Alert.alert('Error', 'Not enough points to edit');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Not enough points to edit',
+      });
       return;
     }
     setEditingMode((p) => !p);
@@ -488,7 +513,11 @@ const PropertyMapScreen: React.FC = () => {
   const openNavigation = () => {
     const locationCoords = property?.location?.coordinates || property?.locationPoint?.coordinates;
     if (!locationCoords) {
-      Alert.alert('Error', 'Property location not available for navigation');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Property location not available for navigation',
+      });
       return;
     }
 
@@ -501,7 +530,11 @@ const PropertyMapScreen: React.FC = () => {
       : `geo:${latitude},${longitude}?q=${latitude},${longitude}(${label})`;
 
     Linking.openURL(url).catch(() => {
-      Alert.alert('Error', 'Unable to open maps application');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Unable to open maps application',
+      });
     });
   };
 
@@ -632,6 +665,67 @@ const PropertyMapScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.mapContainer}>
         {renderMap()}
+
+        {/* Neighbor Labels Overlay */}
+        {property?.neighbors && property.neighbors.length > 0 && coordinates.length > 2 && (
+          <View style={styles.neighborLabelsOverlay}>
+            {(() => {
+              // Calculate boundary extents
+              const longitudes = coordinates.map(coord => coord.longitude);
+              const minLongitude = Math.min(...longitudes);
+              const maxLongitude = Math.max(...longitudes);
+
+              // Filter neighbors for left/right directions only
+              const leftNeighbors = property.neighbors.filter((neighbor: any) =>
+                neighbor.direction?.toLowerCase().includes('west') ||
+                neighbor.direction?.toLowerCase().includes('left') ||
+                neighbor.direction === 'W'
+              );
+
+              const rightNeighbors = property.neighbors.filter((neighbor: any) =>
+                neighbor.direction?.toLowerCase().includes('east') ||
+                neighbor.direction?.toLowerCase().includes('right') ||
+                neighbor.direction === 'E'
+              );
+
+              return (
+                <>
+                  {/* Left side neighbors */}
+                  {leftNeighbors.map((neighbor: any, index: number) => (
+                    <View
+                      key={`left-${index}`}
+                      style={[
+                        styles.neighborLabel,
+                        styles.neighborLabelLeft,
+                        { top: 100 + (index * 40) }
+                      ]}
+                    >
+                      <Text style={styles.neighborLabelText}>
+                        {neighbor.name || neighbor.title || `Neighbor ${index + 1}`}
+                      </Text>
+                    </View>
+                  ))}
+
+                  {/* Right side neighbors */}
+                  {rightNeighbors.map((neighbor: any, index: number) => (
+                    <View
+                      key={`right-${index}`}
+                      style={[
+                        styles.neighborLabel,
+                        styles.neighborLabelRight,
+                        { top: 100 + (index * 40) }
+                      ]}
+                    >
+                      <Text style={styles.neighborLabelText}>
+                        {neighbor.name || neighbor.title || `Neighbor ${index + 1}`}
+                      </Text>
+                    </View>
+                  ))}
+                </>
+              );
+            })()}
+          </View>
+        )}
 
         {/* Controls overlay positioned at the top */}
         <View style={styles.controlsOverlay}>
@@ -1122,6 +1216,33 @@ const styles = StyleSheet.create({
   },
   compassLabelE: {
     right: 0,
+  },
+  neighborLabelsOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  neighborLabel: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    pointerEvents: 'none',
+  },
+  neighborLabelLeft: {
+    left: 10,
+  },
+  neighborLabelRight: {
+    right: 10,
+  },
+  neighborLabelText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 
