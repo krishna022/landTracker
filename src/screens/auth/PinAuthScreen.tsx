@@ -72,12 +72,26 @@ const PinAuthScreen: React.FC = () => {
     setPin(pin.slice(0, -1));
   };
 
-  const validatePinInput = async (pinToValidate: string) => {
-    setLoading(true);
+// PinAuthScreen.tsx - Update validatePinInput function
+const validatePinInput = async (pinToValidate: string) => {
+  setLoading(true);
+  
+  try {
+    // Get user ID from stored user data
+    const userData = await AsyncStorage.getItem('auth_user');
+    if (!userData) {
+      throw new Error('User data not found');
+    }
     
-    try {
-      // Use the new validatePin method from AuthContext
-      await validatePin(pinToValidate);
+    const user = JSON.parse(userData);
+    
+    // Call validatePin with user ID and PIN
+    const result:any = await validatePin(pinToValidate, user?.id);
+    
+    // The validatePin API should return new tokens
+    if (result.tokens) {
+      // Store the new tokens
+      await AsyncStorage.setItem('auth_tokens', JSON.stringify(result.tokens));
       
       // Complete authentication to mark user as logged in
       await completeAuthentication();
@@ -88,43 +102,74 @@ const PinAuthScreen: React.FC = () => {
         text2: `Hello ${userName}`,
         position: 'bottom'
       });
-      
-      // Navigation will be handled automatically by AuthContext state change
-    } catch (error: any) {
-      console.error('PIN validation error:', error);
-      
-      setAttempts(prev => prev + 1);
-      setPin('');
-      
-      // Shake animation for wrong PIN
-      Animated.sequence([
-        Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
-      ]).start();
-      
-      // Handle lockout if needed
-      if (error.response?.data?.lockedUntil) {
-        Toast.show({
-          type: 'error',
-          text1: 'Account Locked',
-          text2: error.message || 'Too many failed attempts',
-          position: 'bottom'
-        });
-      } else {
-        const attemptsRemaining = error.response?.data?.attemptsRemaining;
-        Toast.show({
-          type: 'error',
-          text1: 'Incorrect PIN',
-          text2: attemptsRemaining ? `${attemptsRemaining} attempts remaining` : 'Please try again',
-          position: 'bottom'
-        });
-      }
-    } finally {
-      setLoading(false);
+    } else {
+      throw new Error('No tokens received from PIN validation');
     }
-  };
+  } catch (error: any) {
+    console.error('PIN validation error:', error);
+    
+    setAttempts(prev => prev + 1);
+    setPin('');
+    
+    // Shake animation for wrong PIN
+    Animated.sequence([
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
+    ]).start();
+    
+    // Handle specific error cases
+    if (error.response?.status === 401) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid PIN',
+        text2: 'Please try again',
+        position: 'bottom'
+      });
+    } else if (error.response?.data?.lockedUntil) {
+      Toast.show({
+        type: 'error',
+        text1: 'Account Locked',
+        text2: 'Too many failed attempts',
+        position: 'bottom'
+      });
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Authentication Failed',
+        text2: error.message || 'Please try again',
+        position: 'bottom'
+      });
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleLogout = async () => {
+  try {
+    // Clear all stored data
+    await AsyncStorage.removeItem('auth_user');
+    await AsyncStorage.removeItem('auth_tokens');
+    await AsyncStorage.removeItem('pin_setup_user');
+    
+    // Navigate back to login
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' as never }],
+    });
+    
+    Toast.show({
+      type: 'info',
+      text1: 'Logged Out',
+      text2: 'Please login again',
+      position: 'bottom'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
 
   const handleBiometricAuth = async () => {
     // Placeholder for biometric authentication
@@ -236,6 +281,14 @@ const PinAuthScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </Animated.View>
+      // Add a logout button to the footer
+<TouchableOpacity
+  style={styles.logoutButton}
+  onPress={handleLogout}
+  disabled={loading}
+>
+  <Text style={styles.logoutButtonText}>Logout</Text>
+</TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -361,6 +414,18 @@ const styles = StyleSheet.create({
     color: theme.colors.onSurface,
     opacity: 0.7,
   },
+
+  // Add to styles in PinAuthScreen.tsx
+logoutButton: {
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  marginTop: 20,
+},
+logoutButtonText: {
+  fontSize: 16,
+  color: theme.colors.error,
+  fontWeight: '500',
+},
 });
 
 export default PinAuthScreen;

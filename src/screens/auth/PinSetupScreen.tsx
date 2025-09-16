@@ -23,7 +23,7 @@ const PinSetupScreen: React.FC = () => {
   const [step, setStep] = useState<'create' | 'confirm' | 'biometric'>('create');
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { setupPin, completeAuthentication } = useAuth();
+  const { setupPin, cleanupIncompleteSession, completeAuthentication } = useAuth();
 
   const shakeAnimation = new Animated.Value(0);
 
@@ -84,38 +84,40 @@ const PinSetupScreen: React.FC = () => {
     }
   };
 
-  const handleComplete = async () => {
-    setLoading(true);
+// PinSetupScreen.tsx - Update handleComplete function
+const handleComplete = async () => {
+  setLoading(true);
+  
+  try {
+    // Setup PIN with biometric preference
+    const result = await setupPin(pin, biometricEnabled);
     
-    try {
-      // Setup PIN with biometric preference
-      await setupPin(pin, biometricEnabled);
-      
-      // Complete authentication to log the user in
-      await completeAuthentication();
-      
-      Toast.show({
-        type: 'success',
-        text1: 'Setup Complete!',
-        text2: biometricEnabled 
-          ? 'PIN and biometric authentication enabled' 
-          : 'PIN authentication enabled',
-        position: 'bottom'
-      });
-      
-      // Navigation will be handled automatically by AuthContext state change
-    } catch (error: any) {
-      console.error('PIN setup error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Setup Failed',
-        text2: error.message || 'Failed to setup PIN',
-        position: 'bottom'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    // After PIN setup, complete authentication
+    await completeAuthentication();
+    
+    Toast.show({
+      type: 'success',
+      text1: 'Setup Complete!',
+      text2: biometricEnabled 
+        ? 'PIN and biometric authentication enabled' 
+        : 'PIN authentication enabled',
+      position: 'bottom'
+    });
+    
+    // Navigation will be handled automatically by AuthContext state change
+    
+  } catch (error: any) {
+    console.error('PIN setup error:', error);
+    Toast.show({
+      type: 'error',
+      text1: 'Setup Failed',
+      text2: error.message || 'Failed to setup PIN',
+      position: 'bottom'
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const renderPinDots = () => {
     const currentPin = step === 'create' ? pin : confirmPin;

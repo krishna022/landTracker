@@ -27,11 +27,13 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<{ user: User }>;
   verifyEmail: (email: string, code: string) => Promise<{ user: User; tokens: AuthTokens }>;
   setupPin: (pin: string, biometricEnabled?: boolean) => Promise<{ user: User }>;
-  validatePin: (pin: string) => Promise<{ user: User }>;
+  validatePin: (pin: string, userId:string) => Promise<{ user: User }>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   hasExistingSession: () => Promise<boolean>;
   completeAuthentication: () => Promise<void>;
+  completePinSetup: (userData: User) => Promise<void>;
+  cleanupIncompleteSession: () => Promise<void>;
   user: User | null;
 }
 
@@ -119,7 +121,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-// AuthContext.tsx - login function
+// AuthContext.tsx - the login function
 const login = async (email: string, password: string) => {
   try {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -153,10 +155,14 @@ const login = async (email: string, password: string) => {
       
       console.log('Normal login success in AuthContext');
 
-      // Store user data and tokens
-      await AsyncStorage.setItem('auth_user', JSON.stringify(authData.user));
+      // Store tokens immediately for authenticated requests
       await AsyncStorage.setItem('auth_tokens', JSON.stringify(authData.tokens));
       
+      // Store user data regardless of PIN setup status
+      await AsyncStorage.setItem('auth_user', JSON.stringify(authData.user));
+      
+      dispatch({ type: 'SET_TOKENS', payload: authData.tokens });
+      dispatch({ type: 'SET_USER', payload: authData.user });
       dispatch({ type: 'SET_LOADING', payload: false });
       
       return authData;
@@ -188,19 +194,22 @@ const login = async (email: string, password: string) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      // Call logout API if needed
-      await apiService.auth.logout();
-    } catch (error) {
-      console.error('Logout API error:', error);
-    } finally {
-      // Clear local storage
-      await AsyncStorage.removeItem('auth_user');
-      await AsyncStorage.removeItem('auth_tokens');
-      dispatch({ type: 'LOGOUT' });
-    }
-  };
+const logout = async () => {
+  try {
+    // Call logout API if needed
+    await apiService.auth.logout();
+  } catch (error) {
+    console.error('Logout API error:', error);
+  } finally {
+    // Clear ALL local storage
+    await AsyncStorage.removeItem('auth_user');
+    await AsyncStorage.removeItem('auth_tokens');
+    await AsyncStorage.removeItem('pin_setup_user'); // Add this line
+    
+    // Reset all auth state
+    dispatch({ type: 'LOGOUT' });
+  }
+};
 
   const refreshToken = async () => {
     try {
@@ -246,40 +255,85 @@ const login = async (email: string, password: string) => {
     }
   };
 
-  const setupPin = async (pin: string, biometricEnabled: boolean = false) => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
+    // AuthContext.tsx - Add this function
+const completePinSetup = async (userData: User): Promise<void> => {
+  try {
+    // Get stored tokens
+    const tokens = await AsyncStorage.getItem('auth_tokens');
+    const pinSetupUser = await AsyncStorage.getItem('pin_setup_user');
+    
+    if (tokens && pinSetupUser) {
+      const authTokens = JSON.parse(tokens);
+      const minimalUser = JSON.parse(pinSetupUser);
       
-      const response = await apiService.auth.setupPin(pin, biometricEnabled);
-      const userData = response as { user: User };
+      // Merge minimal user data with complete user data from PIN setup
+      const completeUser = {
+        ...minimalUser,
+        ...userData,
+        hasPinSetup: true
+      };
       
-      // Update stored user data with PIN info
-      await AsyncStorage.setItem('auth_user', JSON.stringify(userData.user));
+      // Store complete user data
+      await AsyncStorage.setItem('auth_user', JSON.stringify(completeUser));
+      await AsyncStorage.removeItem('pin_setup_user'); // Clean up
       
-      dispatch({ type: 'SET_LOADING', payload: false });
-      
-      return userData;
-    } catch (error) {
-      dispatch({ type: 'SET_LOADING', payload: false });
-      throw error;
+      dispatch({ type: 'SET_USER', payload: completeUser });
+      dispatch({ type: 'SET_TOKENS', payload: authTokens });
     }
-  };
+  } catch (error) {
+    throw new Error('Failed to complete PIN setup');
+  }
+};
 
-  const validatePin = async (pin: string) => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      
-      const response = await apiService.auth.validatePin(pin);
-      const userData = response as { user: User };
-      
-      dispatch({ type: 'SET_LOADING', payload: false });
-      
-      return userData;
-    } catch (error) {
-      dispatch({ type: 'SET_LOADING', payload: false });
-      throw error;
+// Update the setupPin function
+const setupPin = async (pin: string, biometricEnabled: boolean = false) => {
+  try {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    const response = await apiService.auth.setupPin(pin, biometricEnabled);
+    const userData = response as { user: User };
+    
+    // Complete the authentication process after PIN setup
+    await completePinSetup(userData.user);
+    
+    dispatch({ type: 'SET_LOADING', payload: false });
+    
+    return userData;
+  } catch (error) {
+    dispatch({ type: 'SET_LOADING', payload: false });
+    throw error;
+  }
+};
+
+// AuthContext.tsx - Update validatePin function
+const validatePin = async (pin: string, userId: string) => {
+  try {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    // Get user ID from storage
+    const userData = await AsyncStorage.getItem('auth_user');
+    if (!userData) {
+      throw new Error('User data not found');
     }
-  };
+    
+    const user = JSON.parse(userData);
+    
+    // Call API to validate PIN - this should return new tokens
+    const response = await apiService.auth.validatePin(pin, userId);
+    const result = response as { user: User; tokens: AuthTokens };
+    
+    // Store the new tokens
+    await AsyncStorage.setItem('auth_tokens', JSON.stringify(result.tokens));
+    
+    dispatch({ type: 'SET_TOKENS', payload: result.tokens });
+    dispatch({ type: 'SET_LOADING', payload: false });
+    
+    return result;
+  } catch (error) {
+    dispatch({ type: 'SET_LOADING', payload: false });
+    throw error;
+  }
+};
 
   const completeAuthentication = async (): Promise<void> => {
     try {
@@ -298,6 +352,17 @@ const login = async (email: string, password: string) => {
     }
   };
 
+  // AuthContext.tsx - Add cleanup function
+const cleanupIncompleteSession = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem('pin_setup_user');
+    await AsyncStorage.removeItem('auth_tokens');
+    dispatch({ type: 'LOGOUT' });
+  } catch (error) {
+    console.error('Cleanup error:', error);
+  }
+};
+
   const value: AuthContextType = {
     state,
     login,
@@ -310,6 +375,8 @@ const login = async (email: string, password: string) => {
     hasExistingSession,
     completeAuthentication,
     user: state.user,
+    completePinSetup,
+    cleanupIncompleteSession, // Add this
   };
 
   return (
@@ -317,6 +384,7 @@ const login = async (email: string, password: string) => {
       {children}
     </AuthContext.Provider>
   );
+
 };
 
 // Hook to use auth context

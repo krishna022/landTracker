@@ -89,69 +89,77 @@ const LoginScreen: React.FC = () => {
   };
 
 // LoginScreen.tsx - handleLogin function
-  const handleLogin = async () => {
-    if (!email || !password) {
+const handleLogin = async () => {
+  if (!email || !password) {
+    Toast.show({
+      type: 'error',
+      text1: 'Validation Error',
+      text2: 'Please fill in all fields',
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    console.log('LoginScreen: Calling authContext.login with:', { email });
+    const result = await login(email, password);
+    
+    if (result === null) {
+      // Email verification is required
+      console.log('LoginScreen: Email verification required');
+      
       Toast.show({
-        type: 'error',
-        text1: 'Validation Error',
-        text2: 'Please fill in all fields',
+        type: 'info',
+        text1: 'Email Verification Required',
+        text2: 'Redirecting to email verification...',
       });
+      
       return;
     }
-
-    setLoading(true);
-
-    try {
-      console.log('LoginScreen: Calling authContext.login with:', { email });
-      const result = await login(email, password);
+    
+    console.log('LoginScreen: Login successful, result:', result);
+    
+    // Check if user has PIN setup
+    if (result.user.hasPinSetup) {
+      console.log('LoginScreen: User has PIN setup, completing authentication');
+      await completeAuthentication();
       
-      if (result === null) {
-        // Email verification is required - AuthContext has set the state
-        console.log('LoginScreen: Email verification required, AuthContext has handled navigation');
-        
-        // Show a brief message before navigation
-        Toast.show({
-          type: 'info',
-          text1: 'Email Verification Required',
-          text2: 'Redirecting to email verification...',
-        });
-        
-        return;
-      }
-      
-      console.log('LoginScreen: Login successful, result:', result);
-      
-      // Check if user has PIN setup and handle accordingly
-      if (result.user.hasPinSetup) {
-        console.log('LoginScreen: User has PIN setup, completing authentication');
-        await completeAuthentication();
-      } else {
-        console.log('LoginScreen: User needs PIN setup, navigating to PinSetup');
-        navigation.navigate('PinSetup' as never);
-      }
-      
-      // Success case - navigation will be handled by AuthContext/AppNavigator
       Toast.show({
         type: 'success',
         text1: 'Login Successful',
         text2: 'Welcome back!',
       });
-      
-    } catch (error: any) {
-      console.log('LoginScreen error details:', error);
-      
-      // Handle other errors normally
-      console.error('LoginScreen: Login failed:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Login Failed',
-        text2: error.response?.data?.message || error.message || 'Please try again',
-      });
-      
-    } finally {
-      setLoading(false);
-    }
-  };
+   } else {
+    console.log('LoginScreen: User needs PIN setup, navigating to PinSetup');
+    
+    Toast.show({
+      type: 'info',
+      text1: 'Security Setup',
+      text2: 'Please set up your PIN for security',
+    });
+    
+    // Use reset to clear the navigation stack and replace with PinSetup
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'PinSetup' as never }],
+    });
+  }
+    
+  } catch (error: any) {
+    console.log('LoginScreen error details:', error);
+    
+    console.error('LoginScreen: Login failed:', error);
+    Toast.show({
+      type: 'error',
+      text1: 'Login Failed',
+      text2: error.response?.data?.message || error.message || 'Please try again',
+    });
+    
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleForgotPassword = () => {
     Toast.show({

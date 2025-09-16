@@ -360,10 +360,10 @@ async login(credentials: any) {
     }
   }
 
-  async validatePin(pin: string) {
+  async validatePin(pin: string, userId: string) {
     try {
       const response = await api.post('/auth/validate-pin', {
-        pin
+        pin, userId
       });
       return handleApiResponse(response);
     } catch (error) {

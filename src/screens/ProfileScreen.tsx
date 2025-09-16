@@ -19,16 +19,15 @@ const ProfileScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Navigate to login screen after logout
-      // @ts-ignore - Navigation typing
-      navigation.navigate('Login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+const handleLogout = async () => {
+  try {
+    await logout();
+    // Don't navigate here - the AppNavigator will automatically redirect
+    // based on the auth state change
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
 
   const profileItems = [
     {

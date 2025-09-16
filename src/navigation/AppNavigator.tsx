@@ -140,65 +140,68 @@ const MainTabs = () => (
 );
 
 // Main App Navigator
+// AppNavigator.tsx - Updated component
 const AppNavigator = () => {
-  const { state, hasExistingSession } = useAuth();
-  const [hasSession, setHasSession] = useState<boolean | null>(null);
-  const [hasPinSetup, setHasPinSetup] = useState<boolean | null>(null);
+  const { state } = useAuth();
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
+  const [requiresPinAuth, setRequiresPinAuth] = useState<boolean>(false);
 
   useEffect(() => {
-    checkSessionAndPin();
+    checkInitialSession();
   }, []);
 
-  // Also check PIN setup when user state changes
-  useEffect(() => {
-    if (state.user?.hasPinSetup !== undefined) {
-      setHasPinSetup(state.user.hasPinSetup);
-    }
-  }, [state.user?.hasPinSetup]);
-
-  const checkSessionAndPin = async () => {
+  const checkInitialSession = async () => {
     try {
-      const sessionExists = await hasExistingSession();
-      setHasSession(sessionExists);
+      // Check if we have user data
+      const userData = await AsyncStorage.getItem('auth_user');
       
-      if (sessionExists) {
-        const pinData = await AsyncStorage.getItem('user_pin');
-        setHasPinSetup(!!pinData);
+      if (userData) {
+        const user = JSON.parse(userData);
+        
+        // Case 2: If user has PIN setup, remove tokens and require PIN auth
+        if (user.hasPinSetup) {
+          await AsyncStorage.removeItem('auth_tokens');
+          setRequiresPinAuth(true);
+        }
       }
     } catch (error) {
-      setHasSession(false);
-      setHasPinSetup(false);
+      console.error('Session check error:', error);
+      // Clean up on error
+      await AsyncStorage.removeItem('auth_tokens');
+      await AsyncStorage.removeItem('auth_user');
+    } finally {
+      setIsCheckingSession(false);
     }
   };
 
   // Show loading while checking session
-  if (state.isLoading || hasSession === null) {
+  if (state.isLoading || isCheckingSession) {
     return <LoadingScreen />;
   }
 
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {state.isAuthenticated && hasPinSetup ? (
-        // User is fully authenticated and has PIN setup, show main app
-        <>
-          <Stack.Screen name="Main" component={MainTabs} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-        </>
-      ) : hasSession ? (
-        // User has an existing session but needs PIN auth first
-        hasPinSetup ? (
-          <Stack.Screen name="PinAuth" component={PinAuthScreen} />
-        ) : (
-          <Stack.Screen name="PinSetup" component={PinSetupScreen} />
-        )
-      ) : (
-        // No session, show auth flow (includes email verification)
-        <Stack.Screen name="Auth">
-          {() => <AuthStack requiresEmailVerification={state.requiresEmailVerification} emailVerificationEmail={state.emailVerificationEmail} />}
-        </Stack.Screen>
-      )}
-    </Stack.Navigator>
-  );
+// AppNavigator.tsx - Make sure the navigation logic correctly handles logout
+return (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    {state.isAuthenticated && state.user?.hasPinSetup ? (
+      // User is fully authenticated and has PIN setup, show main app
+      <>
+        <Stack.Screen name="Main" component={MainTabs} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+      </>
+    ) : state.isAuthenticated && !state.user?.hasPinSetup ? (
+      // User is authenticated but needs PIN setup (from login)
+      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+    ) : state.requiresEmailVerification ? (
+      // Email verification required
+      <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
+    ) : (
+      // No session, show auth flow
+      <Stack.Screen name="Auth">
+        {() => <AuthStack requiresEmailVerification={state.requiresEmailVerification} emailVerificationEmail={state.emailVerificationEmail} />}
+      </Stack.Screen>
+    )}
+  </Stack.Navigator>
+);
 };
 
 export default AppNavigator;
