@@ -410,13 +410,13 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
               <Polygon coordinates={polygonCoordinates} strokeColor="#FF0000" fillColor="rgba(255,0,0,0.18)" strokeWidth={3} />
             )}
 
-            {/* small non-draggable red dots while drawing */}
-            {isDrawing &&
+            {/* small non-draggable red dots while drawing - REMOVED */}
+            {/* {isDrawing &&
               boundaryPoints.map((p) => (
                 <Marker key={p.id} coordinate={{ latitude: p.latitude, longitude: p.longitude }} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
                   <View style={styles.smallRedDot} />
                 </Marker>
-              ))}
+              ))} */}
 
             {/* draggable small blue dots in edit mode */}
             {editingMode &&
@@ -512,7 +512,6 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center' },
   legendColor: { width: 16, height: 16, borderRadius: 8, marginRight: 8 },
   legendText: { fontSize: 14, color: theme.colors.onSurface },
-  smallRedDot: { width: dotSize, height: dotSize, borderRadius: dotSize / 2, backgroundColor: 'rgba(255,0,0,0.95)', borderWidth: 2, borderColor: 'rgba(255,0,0,0.95)', elevation: 3 },
   smallBlueDot: { width: dotSize, height: dotSize, borderRadius: dotSize / 2, backgroundColor: 'rgba(255, 238, 0, 0.95)', borderWidth: 2, borderColor: '#fff', elevation: 3 },
 });
 

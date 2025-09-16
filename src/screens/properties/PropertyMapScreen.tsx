@@ -444,13 +444,13 @@ const PropertyMapScreen: React.FC = () => {
           <Polygon coordinates={polygonCoordinates} strokeColor="#FF0000" fillColor="rgba(255,0,0,0.18)" strokeWidth={3} />
         )}
 
-        {/* Small non-draggable red dots while drawing */}
-        {isDrawing &&
+        {/* Small non-draggable red dots while drawing - REMOVED */}
+        {/* {isDrawing &&
           boundaryPoints.map((p) => (
             <Marker key={p.id} coordinate={{ latitude: p.latitude, longitude: p.longitude }} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
               <View style={styles.smallRedDot} />
             </Marker>
-          ))}
+          ))} */}
 
         {/* Draggable small blue dots in edit mode */}
         {editingMode &&
@@ -709,14 +709,6 @@ const styles = StyleSheet.create({
     color: theme.colors.onSurface,
     opacity: 0.8,
     marginBottom: 4,
-  },
-  smallRedDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: 'rgba(255,0,0,0.95)',
-    borderWidth: 2,
-    borderColor: 'rgba(255,0,0,0.95)',
   },
   smallBlueDot: {
     width: 14,
