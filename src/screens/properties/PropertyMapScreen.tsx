@@ -911,15 +911,15 @@ const styles = StyleSheet.create({
   },
   controlsOverlay: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    right: 10,
+    top: 3,
+    left: 3,
+    right: 3,
     flexDirection: 'row',
     justifyContent: 'space-around',
     flexWrap: 'wrap',
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 8,
-    padding: 8,
+    padding: 3,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: {
@@ -1060,7 +1060,7 @@ const styles = StyleSheet.create({
   compassOverlay: {
     position: 'absolute',
     bottom: 70,
-    right: 5,
+    right: 2,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 8,
     padding: 8,
