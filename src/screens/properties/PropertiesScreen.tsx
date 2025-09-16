@@ -160,7 +160,13 @@ const PropertiesScreen: React.FC = () => {
 
   const handlePropertyDocuments = (property: any) => {
     // @ts-ignore - Navigation typing
-    navigation.navigate('PropertyDocuments', { propertyId: property._id || property.id, property });
+    navigation.navigate('PropertyDocuments', { 
+      propertyId: property._id || property.id, 
+      property: {
+        ...property,
+        name: property.title || property.name || 'Property'
+      }
+    });
   };
 
   const handlePropertyNeighbors = (property: any) => {

@@ -24,7 +24,8 @@ interface RouteParams {
 }
 
 interface Document {
-  _id: string;
+  _id?: string;
+  id?: string;
   filename: string;
   originalName: string;
   mimeType: string;
@@ -43,39 +44,15 @@ const PropertyDocumentsScreen: React.FC = () => {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetchPropertyDocuments();
-  }, []);
-
-    useLayoutEffect(() => {
-      navigation.setOptions({
-        headerRight: () => (
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleAddDocument}
-          activeOpacity={0.8}>
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
-        ),
-      });
-    }, [navigation]);
-
-  const fetchPropertyDocuments = async () => {
-    try {
-      setLoading(true);
-      // For now, we'll use the property's documents array
-      // In a real implementation, you might have a separate endpoint
-      if (property && property.documents) {
-        setDocuments(property.documents);
-      } else {
-        setDocuments([]);
-      }
-    } catch (error: any) {
-      console.error('Error fetching documents:', error);
-      Alert.alert('Error', 'Failed to load documents');
-    } finally {
-      setLoading(false);
+    // Use documents from the property data passed from PropertiesScreen
+    if (property && Array.isArray(property.documents)) {
+      setDocuments(property.documents);
+      console.log('Loaded documents from route params:', property.documents);
+    } else {
+      setDocuments([]);
     }
-  };
+    setLoading(false);
+  }, [property]);
 
   const handleAddDocument = () => {
     Alert.alert(
@@ -202,11 +179,25 @@ const PropertyDocumentsScreen: React.FC = () => {
 
   const deleteDocument = async (documentId: string) => {
     try {
-      // TODO: Implement delete functionality
-      Alert.alert('Info', 'Delete functionality will be implemented');
+      setUploading(true); // Using uploading state for delete operation
+
+      console.log('Deleting document with ID:', documentId);
+      console.log('Property ID:', propertyId);
+
+      // Call backend to delete document
+      const response = await apiService.properties.deletePropertyDocument(propertyId, documentId);
+      console.log('Delete response:', response);
+
+      // Remove from local state
+      setDocuments(prev => prev.filter(doc => (doc._id || doc.id) !== documentId));
+
+      Alert.alert('Success', 'Document deleted successfully');
     } catch (error: any) {
       console.error('Error deleting document:', error);
-      Alert.alert('Error', 'Failed to delete document');
+      console.error('Error details:', error.response?.data || error.message);
+      Alert.alert('Error', error.message || 'Failed to delete document');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -241,8 +232,11 @@ const PropertyDocumentsScreen: React.FC = () => {
   const getFileIcon = (mimeType: string): string => {
     if (mimeType.includes('pdf')) return '📄';
     if (mimeType.includes('image')) return '🖼️';
-    if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
-    if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return '📊';
+    if (mimeType.includes('word') || mimeType.includes('document') || mimeType.includes('msword')) return '📝';
+    if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('sheet')) return '📊';
+    if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return '📊';
+    if (mimeType.includes('text')) return '📄';
+    if (mimeType.includes('zip') || mimeType.includes('rar')) return '📦';
     return '📄';
   };
 
@@ -267,7 +261,7 @@ const PropertyDocumentsScreen: React.FC = () => {
 
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => handleDeleteDocument(item._id)}
+        onPress={() => handleDeleteDocument(item._id || item.id || '')}
         activeOpacity={0.8}
       >
         <Text style={styles.deleteButtonText}>×</Text>
@@ -297,9 +291,9 @@ const PropertyDocumentsScreen: React.FC = () => {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.title}>Property Documents</Text>
+          <Text style={styles.title}>{property?.name || 'Property Documents'}</Text>
           <Text style={styles.subtitle}>
-            {property?.title || property?.name || 'Property'}
+            {documents.length} document(s)
           </Text>
         </View>
         <TouchableOpacity
@@ -321,7 +315,7 @@ const PropertyDocumentsScreen: React.FC = () => {
           <Text style={styles.emptyIcon}>📄</Text>
           <Text style={styles.emptyTitle}>No Documents</Text>
           <Text style={styles.emptyText}>
-            Add documents related to this property
+            Add documents related to {property?.name || 'this property'}
           </Text>
           {renderAddDocumentButton()}
         </View>
@@ -329,7 +323,7 @@ const PropertyDocumentsScreen: React.FC = () => {
         <FlatList
           data={documents}
           renderItem={renderDocumentItem}
-          keyExtractor={(item) => item._id}
+                              keyExtractor={(item) => item._id || item.id || Math.random().toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
         />
