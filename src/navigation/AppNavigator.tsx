@@ -18,6 +18,7 @@ import AddPropertyScreen from '../screens/properties/AddPropertyScreen';
 import PropertyImageScreen from '../screens/properties/PropertyImageScreen';
 import PropertyMapScreen from '../screens/properties/PropertyMapScreen';
 import PropertyDocumentsScreen from '../screens/properties/PropertyDocumentsScreen';
+import PropertyNeighborsScreen from '../screens/properties/PropertyNeighborsScreen';
 import MapScreen from '../screens/MapScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -77,6 +78,11 @@ const PropertiesStack = () => (
       name="PropertyDocuments" 
       component={PropertyDocumentsScreen} 
       options={{ title: 'Property Documents' }}
+    />
+    <Stack.Screen 
+      name="PropertyNeighbors" 
+      component={PropertyNeighborsScreen} 
+      options={{ title: 'Property Neighbors' }}
     />
   </Stack.Navigator>
 );
