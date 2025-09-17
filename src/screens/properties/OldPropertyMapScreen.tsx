@@ -30,6 +30,7 @@ import simplify from 'simplify-js';
 import Toast from 'react-native-toast-message';
 import { theme } from '../../utils/theme';
 import { apiService } from '../../services/api';
+import { useAuth } from '../../store/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -53,6 +54,7 @@ const SMOOTH_TOLERANCE = 0.00001; // Much lower tolerance for detailed drawing
 const MAX_POINTS = 2000; // Safety limit to prevent performance issues
 
 const PropertyMapScreen: React.FC = () => {
+  const { user } = useAuth();
   const navigation = useNavigation();
   const route = useRoute();
   const { propertyId, property } = route.params as RouteParams;
@@ -72,6 +74,8 @@ const PropertyMapScreen: React.FC = () => {
 
   // Property outline coordinates
   const [coordinates, setCoordinates] = useState<any[]>([]);
+
+  const [showUserLocation, setShowUserLocation] = useState(false);
 
   // Bottom slide for property details
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
@@ -217,69 +221,123 @@ const PropertyMapScreen: React.FC = () => {
   const initializeMap = () => {
     console.log('Initializing map with property:', property);
     console.log('Property ID:', propertyId);
+    console.log('Property outline:', property?.outline);
+    console.log('Property locationPoint:', property?.locationPoint);
+    console.log('Property location:', property?.location);
+    console.log('Current userLocation:', userLocation);
 
     setPropertyLoading(true);
 
-    // Check for property location (could be location or locationPoint)
-    const propertyLocation = property?.location?.coordinates || property?.locationPoint?.coordinates;
+    let centerCoordinates = null;
 
-    if (property && propertyLocation) {
-      console.log('Found property location:', propertyLocation);
+    // Priority 1: Use property outline coordinates if available
+    if (property?.outline && property.outline.coordinates && property.outline.coordinates.length > 0) {
+      console.log('Outline exists, coordinates length:', property.outline.coordinates.length);
+      console.log('First coordinate array:', property.outline.coordinates[0]);
 
-      const initialRegion = {
-        latitude: propertyLocation[1], // GeoJSON: [lng, lat] so lat is index 1
-        longitude: propertyLocation[0], // GeoJSON: [lng, lat] so lng is index 0
-        latitudeDelta: 0.001,
-        longitudeDelta: 0.001,
-      };
-      setRegion(initialRegion);
-      console.log('Set map region to property location:', initialRegion);
-
-      // Initialize coordinates for outline if available and not cleared
-      if (!boundaryCleared && property.outline && property.outline.coordinates && property.outline.coordinates[0]) {
-        console.log('Loading existing property outline:', property.outline);
-        console.log('Outline coordinates array:', property.outline.coordinates[0]);
-        try {
-          const outlineCoords = property.outline.coordinates[0].map((coord: number[]) => ({
-            latitude: coord[1],
-            longitude: coord[0],
-          }));
-
-          console.log('Raw GeoJSON coordinates sample:', property.outline.coordinates[0].slice(0, 3));
-          console.log('Converted coordinates sample:', outlineCoords.slice(0, 3));
-
-          // Remove the closing coordinate if it exists (GeoJSON often includes it)
-          if (outlineCoords.length > 1 &&
-              outlineCoords[0].latitude === outlineCoords[outlineCoords.length - 1].latitude &&
-              outlineCoords[0].longitude === outlineCoords[outlineCoords.length - 1].longitude) {
-            console.log('Removing duplicate closing coordinate');
-            outlineCoords.pop();
-          }
-
-          console.log('Final converted outline coordinates:', outlineCoords.length, 'points');
-          setCoordinates(outlineCoords);
-
-          // Also set boundary points for editing
-          const boundaryPts = outlineCoords.map((coord: any, index: number) => ({
-            latitude: coord.latitude,
-            longitude: coord.longitude,
-            id: `pt-${Date.now()}-${index}`,
-          }));
-          setBoundaryPoints(boundaryPts);
-          console.log('Set boundary points for editing:', boundaryPts.length, 'points');
-        } catch (error) {
-          console.error('Error loading property outline:', error);
-          Alert.alert('Warning', 'Could not load existing property outline. You can draw a new one.');
-        }
+      const outlineCoords = property.outline.coordinates[0];
+      if (outlineCoords && outlineCoords.length > 0) {
+        console.log('First coordinate in array:', outlineCoords[0]);
+        // Use first coordinate from outline (GeoJSON: [lng, lat])
+        centerCoordinates = {
+          latitude: outlineCoords[0][1], // lat
+          longitude: outlineCoords[0][0], // lng
+        };
+        console.log('Using outline coordinates for center:', centerCoordinates);
       } else {
-        console.log('No existing outline found for property');
-        // Clear any existing coordinates
-        setCoordinates([]);
-        setBoundaryPoints([]);
+        console.log('Outline coordinates array is empty');
       }
     } else {
-      console.log('No property location available, using default region');
-      // Clear coordinates if no property
+      console.log('No outline coordinates found');
+    }
+
+    // Priority 2: Use property locationPoint if available
+    if (!centerCoordinates && property?.locationPoint && property.locationPoint.coordinates && property.locationPoint.coordinates.length > 0) {
+      centerCoordinates = {
+        latitude: property.locationPoint.coordinates[1], // GeoJSON: [lng, lat] so lat is index 1
+        longitude: property.locationPoint.coordinates[0], // GeoJSON: [lng, lat] so lng is index 0
+      };
+      console.log('Using locationPoint coordinates for center:', centerCoordinates);
+    }
+
+    // Priority 3: Use property location if available
+    if (!centerCoordinates && property?.location && property.location.coordinates && property.location.coordinates.length > 0) {
+      centerCoordinates = {
+        latitude: property.location.coordinates[1], // GeoJSON: [lng, lat] so lat is index 1
+        longitude: property.location.coordinates[0], // GeoJSON: [lng, lat] so lng is index 0
+      };
+      console.log('Using location coordinates for center:', centerCoordinates);
+    }
+
+    // Priority 4: Use user's current location if geolocation is enabled
+    if (!centerCoordinates && userLocation) {
+      centerCoordinates = {
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+      };
+      console.log('Using user location for center:', centerCoordinates);
+    }
+
+    // Priority 5: Use default coordinates
+    if (!centerCoordinates) {
+      centerCoordinates = {
+        latitude: 28.642655,
+        longitude: 76.4694164,
+      };
+      console.log('Using default coordinates for center:', centerCoordinates);
+    }
+
+    console.log('Final center coordinates chosen:', centerCoordinates);
+
+    // Set the region with the determined center coordinates
+    const initialRegion = {
+      latitude: centerCoordinates.latitude,
+      longitude: centerCoordinates.longitude,
+      latitudeDelta: 0.001, // Increased for better zoom out view
+      longitudeDelta: 0.001, // Increased for better zoom out view
+    };
+    setRegion(initialRegion);
+    console.log('Set map region to:', initialRegion);
+
+    // Initialize coordinates for outline if available and not cleared
+    if (!boundaryCleared && property.outline && property.outline.coordinates && property.outline.coordinates[0]) {
+      console.log('Loading existing property outline:', property.outline);
+      console.log('Outline coordinates array:', property.outline.coordinates[0]);
+      try {
+        const outlineCoords = property.outline.coordinates[0].map((coord: number[]) => ({
+          latitude: coord[1],
+          longitude: coord[0],
+        }));
+
+        console.log('Raw GeoJSON coordinates sample:', property.outline.coordinates[0].slice(0, 3));
+        console.log('Converted coordinates sample:', outlineCoords.slice(0, 3));
+
+        // Remove the closing coordinate if it exists (GeoJSON often includes it)
+        if (outlineCoords.length > 1 &&
+            outlineCoords[0].latitude === outlineCoords[outlineCoords.length - 1].latitude &&
+            outlineCoords[0].longitude === outlineCoords[outlineCoords.length - 1].longitude) {
+          console.log('Removing duplicate closing coordinate');
+          outlineCoords.pop();
+        }
+
+        console.log('Final converted outline coordinates:', outlineCoords.length, 'points');
+        setCoordinates(outlineCoords);
+
+        // Also set boundary points for editing
+        const boundaryPts = outlineCoords.map((coord: any, index: number) => ({
+          latitude: coord.latitude,
+          longitude: coord.longitude,
+          id: `pt-${Date.now()}-${index}`,
+        }));
+        setBoundaryPoints(boundaryPts);
+        console.log('Set boundary points for editing:', boundaryPts.length, 'points');
+      } catch (error) {
+        console.error('Error loading property outline:', error);
+        Alert.alert('Warning', 'Could not load existing property outline. You can draw a new one.');
+      }
+    } else {
+      console.log('No existing outline found for property');
+      // Clear any existing coordinates
       setCoordinates([]);
       setBoundaryPoints([]);
     }
@@ -300,12 +358,12 @@ const PropertyMapScreen: React.FC = () => {
             const r = {
               latitude: pos.coords.latitude,
               longitude: pos.coords.longitude,
-              latitudeDelta: 0.001,
-              longitudeDelta: 0.001,
+              latitudeDelta: 0.001, // Consistent zoom level
+              longitudeDelta: 0.001, // Consistent zoom level
             };
             setUserLocation(r);
-            setRegion(r); // Set region to current location
-            if (mapRef.current) mapRef.current.animateToRegion(r, 1000);
+            // Don't automatically set region here - let initializeMap handle centering priority
+            console.log('User location obtained:', r);
           },
           (err) => {
             console.warn('Geolocation error', err);
@@ -549,11 +607,11 @@ const PropertyMapScreen: React.FC = () => {
       const result = await apiService.properties.updateProperty(propertyId, updateData);
 
       if (result) {
-                Toast.show({
-                  type: 'success',
-                  text1: 'Success',
-                  text2: 'Property outline updated successfully',
-                });
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Property outline updated successfully',
+        });
 
         // Update local coordinates state to reflect the saved outline
         const updatedCoordinates = boundaryPoints.map(coord => ({
@@ -571,11 +629,11 @@ const PropertyMapScreen: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error updating outline:', error);
-            Toast.show({
-              type: 'error',
-              text1: 'Error',
-              text2: 'Failed to update property outline. Please try again.',
-            });
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update property outline. Please try again.',
+      });
     } finally {
       setLoading(false);
     }
@@ -604,7 +662,6 @@ const PropertyMapScreen: React.FC = () => {
     setCoordinates((prev) => prev.slice(0, -1));
   };
 
-  // Map helpers
   // Map helpers
   const toggleEditMode = () => {
     if (boundaryPoints.length < 3 && coordinates.length < 3) {
@@ -726,12 +783,10 @@ const PropertyMapScreen: React.FC = () => {
         provider={PROVIDER_GOOGLE}
         mapType={mapType}
         initialRegion={region}
-        showsUserLocation={!drawingMode}
+        showsUserLocation={showUserLocation}
         showsMyLocationButton={false}
-        onPress={handleMapPress}
-        onPanDrag={handleMapDrag}
+        showsCompass={true}
         onRegionChangeComplete={(r) => setRegion(r)}
-        onMapReady={() => setTimeout(() => setRegion(region), 0)}
         zoomEnabled={true}
         scrollEnabled={!drawingMode && !editingMode}
         rotateEnabled={!drawingMode && !editingMode}
@@ -845,8 +900,45 @@ const PropertyMapScreen: React.FC = () => {
         <View style={styles.controlsOverlay}>
           <TouchableOpacity
             style={styles.controlButton}
-            onPress={() => {
-              if (userLocation && mapRef.current) mapRef.current.animateToRegion(userLocation, 500);
+            onPress={async () => {
+              if (userLocation && mapRef.current) {
+                setShowUserLocation(true);
+                mapRef.current.animateToRegion(userLocation, 500);
+              } else {
+                // Get current location if not available
+                try {
+                  const permission =
+                    Platform.OS === 'ios'
+                      ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+                      : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
+                  const result = await request(permission);
+                  if (result === RESULTS.GRANTED) {
+                    Geolocation.getCurrentPosition(
+                      (pos) => {
+                        const currentLocation = {
+                          latitude: pos.coords.latitude,
+                          longitude: pos.coords.longitude,
+                          latitudeDelta: 0.001, // Consistent zoom level
+                          longitudeDelta: 0.001, // Consistent zoom level
+                        };
+                        setUserLocation(currentLocation);
+                        setShowUserLocation(true);
+                        if (mapRef.current) mapRef.current.animateToRegion(currentLocation, 500);
+                      },
+                      (err) => {
+                        console.warn('Geolocation error', err);
+                        Alert.alert('Error', 'Unable to get your current location');
+                      },
+                      { enableHighAccuracy: true, timeout: 15000 }
+                    );
+                  } else {
+                    Alert.alert('Permission Denied', 'Location permission is required to show your current location');
+                  }
+                } catch (err) {
+                  console.warn('Location request error', err);
+                  Alert.alert('Error', 'Unable to request location permission');
+                }
+              }
             }}
           >
             <Text style={styles.controlButtonText}>{'📍 My Location'}</Text>
@@ -865,7 +957,7 @@ const PropertyMapScreen: React.FC = () => {
             onPress={toggleDrawingMode}
           >
             <Text style={styles.controlButtonText}>
-              {drawingMode ? `✅ Save Drawing` : (coordinates.length > 2 ? '🖌️ Re-Draw Outline' : '✏️ Draw Outline')}
+              {drawingMode ? `✅ Save Drawing (${boundaryPoints.length})` : (coordinates.length > 2 ? '🖌️ Re-Draw Outline' : '✏️ Draw Outline')}
             </Text>
           </TouchableOpacity>
 
@@ -875,7 +967,7 @@ const PropertyMapScreen: React.FC = () => {
               onPress={toggleEditMode}
             >
               <Text style={styles.controlButtonText}>
-                {editingMode ? `✅ Save Editing` : `🖌️ Edit Points`}
+                {editingMode ? `✅ Save Editing (${boundaryPoints.length})` : `🖌️ Edit Points (${boundaryPoints.length})`}
               </Text>
             </TouchableOpacity>
           )}
@@ -907,10 +999,10 @@ const PropertyMapScreen: React.FC = () => {
           )}
         </View>
 
-                {/* Navigation Button Overlay */}
-                <TouchableOpacity style={styles.navOverlay} onPress={openNavigation}>
-                  <Text style={styles.navIcon}>🗺️</Text>
-                </TouchableOpacity>
+        {/* Navigation Button Overlay */}
+        <TouchableOpacity style={styles.navOverlay} onPress={openNavigation}>
+          <Text style={styles.navIcon}>🗺️</Text>
+        </TouchableOpacity>
 
         {/* Compass/Directions Overlay */}
         <View style={styles.compassOverlay}>
@@ -1034,6 +1126,16 @@ const PropertyMapScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Loading overlay for save operations */}
+      {loading && (
+        <View style={styles.saveLoadingOverlay}>
+          <View style={styles.saveLoadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={styles.saveLoadingText}>Saving outline...</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };

@@ -6,9 +6,11 @@ import { AuthTokens, ApiResponse } from '../types';
 // For now, we'll use a default API URL. In production, this should come from environment variables
 // Use 10.0.2.2 for Android emulator to access localhost on host machine
 // Use localhost for iOS simulator
-const API_BASE_URL = Platform.OS === 'android' 
-  ? 'http://10.0.2.2:3000/api' 
-  : 'http://localhost:3000/api';
+// const API_BASE_URL = Platform.OS === 'android' 
+//   ? 'http://10.0.2.2:3000/api' 
+//   : 'http://localhost:3000/api';
+
+const API_BASE_URL = Platform.OS === 'android' ? 'https://landtracker.crediblearena.com/api' : 'http://10.0.2.2:3000/api';
 
 // Create axios instance
 // api.ts - Update your Axios instance
