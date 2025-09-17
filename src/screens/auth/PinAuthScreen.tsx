@@ -12,12 +12,13 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../store/AuthContext';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
 const PinAuthScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { state } = useTheme();
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
@@ -193,7 +194,14 @@ const handleLogout = async () => {
             key={index}
             style={[
               styles.pinDot,
-              index < pin.length && styles.pinDotFilled
+              {
+                borderColor: state.theme.colors.outline,
+                backgroundColor: state.theme.colors.surface
+              },
+              index < pin.length && {
+                backgroundColor: state.theme.colors.primary,
+                borderColor: state.theme.colors.primary
+              }
             ]}
           />
         ))}
@@ -218,6 +226,10 @@ const handleLogout = async () => {
                 key={colIndex}
                 style={[
                   styles.numpadButton,
+                  {
+                    backgroundColor: state.theme.colors.surface,
+                    shadowColor: state.theme.colors.shadow
+                  },
                   item === '' && styles.numpadButtonEmpty
                 ]}
                 onPress={() => {
@@ -231,9 +243,9 @@ const handleLogout = async () => {
                 activeOpacity={0.7}
               >
                 {item === 'backspace' ? (
-                  <Text style={styles.backspaceIcon}>⌫</Text>
+                  <Text style={[styles.backspaceIcon, { color: state.theme.colors.onSurface }]}>⌫</Text>
                 ) : (
-                  <Text style={styles.numpadButtonText}>{item}</Text>
+                  <Text style={[styles.numpadButtonText, { color: state.theme.colors.onSurface }]}>{item}</Text>
                 )}
               </TouchableOpacity>
             ))}
@@ -244,14 +256,14 @@ const handleLogout = async () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: state.theme.colors.background }]}>
       <Animated.View style={[styles.content, { transform: [{ translateX: shakeAnimation }] }]}>
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoEmoji}>🔐</Text>
           </View>
-          <Text style={styles.title}>Enter Your PIN</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: state.theme.colors.onBackground }]}>Enter Your PIN</Text>
+          <Text style={[styles.subtitle, { color: state.theme.colors.onSurface }]}>
             {userName ? `Welcome back, ${userName}` : 'Enter your 4-digit PIN to continue'}
           </Text>
         </View>
@@ -263,12 +275,12 @@ const handleLogout = async () => {
         <View style={styles.footer}>
           {biometricAvailable && (
             <TouchableOpacity
-              style={styles.biometricButton}
+              style={[styles.biometricButton, { backgroundColor: state.theme.colors.surface }]}
               onPress={handleBiometricAuth}
               disabled={loading}
             >
               <Text style={styles.biometricIcon}>👆</Text>
-              <Text style={styles.biometricText}>Use Biometric</Text>
+              <Text style={[styles.biometricText, { color: state.theme.colors.onSurface }]}>Use Biometric</Text>
             </TouchableOpacity>
           )}
 
@@ -277,18 +289,17 @@ const handleLogout = async () => {
             onPress={handleBackToLogin}
             disabled={loading}
           >
-            <Text style={styles.backButtonText}>Back to Login</Text>
+            <Text style={[styles.backButtonText, { color: state.theme.colors.onSurface, opacity: 0.7 }]}>Back to Login</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
-      // Add a logout button to the footer
-<TouchableOpacity
-  style={styles.logoutButton}
-  onPress={handleLogout}
-  disabled={loading}
->
-  <Text style={styles.logoutButtonText}>Logout</Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={handleLogout}
+        disabled={loading}
+      >
+        <Text style={[styles.logoutButtonText, { color: state.theme.colors.error }]}>Logout</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -296,7 +307,6 @@ const handleLogout = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
@@ -317,13 +327,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: theme.colors.onBackground,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: theme.colors.onSurface,
     textAlign: 'center',
     opacity: 0.8,
     lineHeight: 22,
@@ -338,13 +346,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: theme.colors.outline,
     marginHorizontal: 12,
-    backgroundColor: theme.colors.surface,
-  },
-  pinDotFilled: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
   numpadContainer: {
     alignSelf: 'center',
@@ -359,11 +361,9 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 20,
-    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -377,11 +377,9 @@ const styles = StyleSheet.create({
   numpadButtonText: {
     fontSize: 24,
     fontWeight: '600',
-    color: theme.colors.onSurface,
   },
   backspaceIcon: {
     fontSize: 24,
-    color: theme.colors.onSurface,
   },
   footer: {
     alignItems: 'center',
@@ -391,7 +389,6 @@ const styles = StyleSheet.create({
   biometricButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 25,
@@ -402,7 +399,6 @@ const styles = StyleSheet.create({
   },
   biometricText: {
     fontSize: 16,
-    color: theme.colors.onSurface,
     fontWeight: '500',
   },
   backButton: {
@@ -411,21 +407,17 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: theme.colors.onSurface,
     opacity: 0.7,
   },
-
-  // Add to styles in PinAuthScreen.tsx
-logoutButton: {
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  marginTop: 20,
-},
-logoutButtonText: {
-  fontSize: 16,
-  color: theme.colors.error,
-  fontWeight: '500',
-},
+  logoutButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 20,
+  },
+  logoutButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
 });
 
 export default PinAuthScreen;

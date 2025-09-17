@@ -60,24 +60,18 @@ const darkColors = {
 
 export const lightTheme = {
   ...DefaultTheme,
-  ...NavigationDefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    ...NavigationDefaultTheme.colors,
     ...colors,
   },
-  roundness: 8,
 };
 
 export const darkTheme = {
   ...MD3DarkTheme,
-  ...NavigationDarkTheme,
   colors: {
     ...MD3DarkTheme.colors,
-    ...NavigationDarkTheme.colors,
     ...darkColors,
   },
-  roundness: 8,
 };
 
 // Common styles
