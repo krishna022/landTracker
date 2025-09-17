@@ -15,7 +15,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../store/AuthContext';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ValidationUtils } from '../../utils/validation';
 
 const { width, height } = Dimensions.get('window');
@@ -49,6 +50,8 @@ interface FormErrors {
 const RegisterScreen: React.FC = () => {
   const { register } = useAuth();
   const navigation = useNavigation();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -367,6 +370,385 @@ const RegisterScreen: React.FC = () => {
     </View>
   );
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 24,
+      paddingTop: height * 0.06,
+      paddingBottom: 32,
+    },
+    headerSection: {
+      alignItems: 'center',
+      marginBottom: 32,
+    },
+    logoContainer: {
+      marginBottom: 20,
+    },
+    logo: {
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+      backgroundColor: theme.colors.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    logoText: {
+      fontSize: 28,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      opacity: 0.8,
+      marginBottom: 24,
+    },
+    stepIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+    },
+    stepDot: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.outline,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    stepDotActive: {
+      backgroundColor: theme.colors.primary,
+    },
+    stepNumber: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+    },
+    stepNumberActive: {
+      color: theme.colors.onPrimary,
+    },
+    stepLine: {
+      width: 40,
+      height: 2,
+      backgroundColor: theme.colors.outline,
+      marginHorizontal: 8,
+    },
+    stepLineActive: {
+      backgroundColor: theme.colors.primary,
+    },
+    stepContent: {
+      marginBottom: 24,
+    },
+    stepTitle: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    stepSubtitle: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      opacity: 0.8,
+      marginBottom: 24,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      marginBottom: 20,
+    },
+    inputContainer: {
+      marginBottom: 20,
+    },
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.onBackground,
+      marginBottom: 8,
+      marginLeft: 4,
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+      borderRadius: 16,
+      backgroundColor: theme.colors.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 4,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    inputFocused: {
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.primaryContainer,
+      shadowColor: theme.colors.primary,
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    inputError: {
+      borderColor: theme.colors.error,
+    },
+    inputIcon: {
+      fontSize: 18,
+      marginRight: 12,
+    },
+    input: {
+      flex: 1,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      paddingVertical: 12,
+    },
+    eyeButton: {
+      padding: 8,
+    },
+    eyeIcon: {
+      fontSize: 16,
+    },
+    errorText: {
+      color: theme.colors.error,
+      fontSize: 12,
+      marginTop: 4,
+      marginLeft: 4,
+    },
+    nextButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 16,
+      paddingVertical: 16,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+      marginTop: 8,
+    },
+    nextButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginRight: 8,
+    },
+    buttonArrow: {
+      color: theme.colors.onPrimary,
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 8,
+    },
+    backButton: {
+      flex: 1,
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+    },
+    backButtonText: {
+      color: theme.colors.onSurface,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    registerButton: {
+      flex: 2,
+      backgroundColor: theme.colors.primary,
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    buttonDisabled: {
+      backgroundColor: theme.colors.outline,
+      shadowOpacity: 0.1,
+    },
+    registerButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 'auto',
+      paddingTop: 24,
+    },
+    footerText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+    },
+    link: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      fontWeight: 'bold',
+    },
+    // Phone input styles
+    phoneInputContainer: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    countryCodeButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+      borderRadius: 16,
+      backgroundColor: theme.colors.surface,
+      paddingHorizontal: 12,
+      paddingVertical: 16,
+      minWidth: 120,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    countryFlag: {
+      fontSize: 20,
+      marginRight: 8,
+    },
+    countryCodeText: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: '500',
+      flex: 1,
+    },
+    dropdownArrow: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.6,
+    },
+    phoneNumberWrapper: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+      borderRadius: 16,
+      backgroundColor: theme.colors.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 4,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    phoneNumberInput: {
+      flex: 1,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      paddingVertical: 12,
+    },
+    // Modal styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 16,
+      width: width * 0.9,
+      maxHeight: height * 0.7,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+    },
+    modalCloseButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.outline,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalCloseText: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: 'bold',
+    },
+    countryList: {
+      maxHeight: height * 0.5,
+    },
+    countryItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    countryItemFlag: {
+      fontSize: 24,
+      marginRight: 16,
+    },
+    countryItemName: {
+      flex: 1,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: '500',
+    },
+    countryItemCode: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      fontWeight: '500',
+    },
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -443,383 +825,5 @@ const RegisterScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: height * 0.06,
-    paddingBottom: 32,
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  logoContainer: {
-    marginBottom: 20,
-  },
-  logo: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: theme.colors.primaryContainer,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoText: {
-    fontSize: 28,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    opacity: 0.8,
-    marginBottom: 24,
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  stepDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.outline,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stepDotActive: {
-    backgroundColor: theme.colors.primary,
-  },
-  stepNumber: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-  },
-  stepNumberActive: {
-    color: theme.colors.onPrimary,
-  },
-  stepLine: {
-    width: 40,
-    height: 2,
-    backgroundColor: theme.colors.outline,
-    marginHorizontal: 8,
-  },
-  stepLineActive: {
-    backgroundColor: theme.colors.primary,
-  },
-  stepContent: {
-    marginBottom: 24,
-  },
-  stepTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  stepSubtitle: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    opacity: 0.8,
-    marginBottom: 24,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderRadius: 16,
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  inputFocused: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primaryContainer,
-    shadowColor: theme.colors.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  inputError: {
-    borderColor: theme.colors.error,
-  },
-  inputIcon: {
-    fontSize: 18,
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    paddingVertical: 12,
-  },
-  eyeButton: {
-    padding: 8,
-  },
-  eyeIcon: {
-    fontSize: 16,
-  },
-  errorText: {
-    color: theme.colors.error,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  nextButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 16,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    marginTop: 8,
-  },
-  nextButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  buttonArrow: {
-    color: theme.colors.onPrimary,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  backButton: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-  },
-  backButtonText: {
-    color: theme.colors.onSurface,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  registerButton: {
-    flex: 2,
-    backgroundColor: theme.colors.primary,
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  buttonDisabled: {
-    backgroundColor: theme.colors.outline,
-    shadowOpacity: 0.1,
-  },
-  registerButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 'auto',
-    paddingTop: 24,
-  },
-  footerText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-  },
-  link: {
-    fontSize: 14,
-    color: theme.colors.primary,
-    fontWeight: 'bold',
-  },
-  // Phone input styles
-  phoneInputContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  countryCodeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderRadius: 16,
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 16,
-    minWidth: 120,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  countryFlag: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  countryCodeText: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    fontWeight: '500',
-    flex: 1,
-  },
-  dropdownArrow: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    opacity: 0.6,
-  },
-  phoneNumberWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderRadius: 16,
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  phoneNumberInput: {
-    flex: 1,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    paddingVertical: 12,
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    width: width * 0.9,
-    maxHeight: height * 0.7,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-  },
-  modalCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.outline,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalCloseText: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    fontWeight: 'bold',
-  },
-  countryList: {
-    maxHeight: height * 0.5,
-  },
-  countryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  countryItemFlag: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  countryItemName: {
-    flex: 1,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    fontWeight: '500',
-  },
-  countryItemCode: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-    fontWeight: '500',
-  },
-});
-
 export default RegisterScreen;
+

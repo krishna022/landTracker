@@ -15,7 +15,8 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { apiService } from '../../services/api';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,6 +28,8 @@ const EmailVerificationScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { email } = route.params as RouteParams;
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -212,6 +215,231 @@ const EmailVerificationScreen: React.FC = () => {
 
   const isCodeComplete = verificationCode.every(digit => digit !== '');
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 24,
+      paddingTop: height * 0.08,
+      paddingBottom: 32,
+    },
+    content: {
+      flex: 1,
+    },
+    headerSection: {
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    logoContainer: {
+      marginBottom: 24,
+    },
+    logo: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: theme.colors.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    logoText: {
+      fontSize: 32,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      opacity: 0.8,
+      marginBottom: 4,
+    },
+    email: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    formSection: {
+      marginBottom: 32,
+    },
+    instruction: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      marginBottom: 32,
+      opacity: 0.9,
+    },
+    codeContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 32,
+      paddingHorizontal: 16,
+    },
+    codeInputWrapper: {
+      flex: 1,
+      marginHorizontal: 4,
+    },
+    codeInput: {
+      height: 60,
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+      borderRadius: 12,
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      backgroundColor: theme.colors.surface,
+      textAlign: 'center',
+    },
+    codeInputFocused: {
+      borderColor: theme.colors.primary,
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    codeInputFilled: {
+      backgroundColor: theme.colors.primaryContainer,
+      borderColor: theme.colors.primary,
+    },
+    verifyButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 12,
+      paddingVertical: 16,
+      alignItems: 'center',
+      marginBottom: 24,
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    buttonDisabled: {
+      backgroundColor: theme.colors.surfaceVariant,
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+    verifyButtonText: {
+      color: 'white',
+      fontSize: 18,
+      fontWeight: '600',
+    },
+    buttonArrow: {
+      position: 'absolute',
+      right: 24,
+      top: 16,
+      fontSize: 18,
+      color: 'white',
+    },
+    resendContainer: {
+      alignItems: 'center',
+    },
+    timerText: {
+      fontSize: 16,
+      color: theme.colors.onSurfaceVariant,
+    },
+    resendButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+    },
+    resendButtonText: {
+      color: theme.colors.primary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    footer: {
+      alignItems: 'center',
+      marginTop: 'auto',
+      paddingTop: 16,
+    },
+    backButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+    },
+    backButtonText: {
+      color: theme.colors.onSurfaceVariant,
+      fontSize: 16,
+    },
+    successContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: 24,
+    },
+    successContent: {
+      alignItems: 'center',
+      paddingVertical: 40,
+      paddingHorizontal: 24,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 16,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 8,
+      width: '100%',
+      maxWidth: 320,
+    },
+    successIconContainer: {
+      marginBottom: 24,
+    },
+    successIcon: {
+      fontSize: 64,
+    },
+    successTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    successMessage: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      marginBottom: 8,
+      opacity: 0.9,
+    },
+    successSubtitle: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    loadingDots: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.colors.primary,
+      marginHorizontal: 4,
+    },
+  }));
+
   // Show success screen if verification was successful
   if (verificationSuccess) {
     return (
@@ -343,230 +571,5 @@ const EmailVerificationScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: height * 0.08,
-    paddingBottom: 32,
-  },
-  content: {
-    flex: 1,
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoContainer: {
-    marginBottom: 24,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.colors.primaryContainer,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoText: {
-    fontSize: 32,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    opacity: 0.8,
-    marginBottom: 4,
-  },
-  email: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  formSection: {
-    marginBottom: 32,
-  },
-  instruction: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    marginBottom: 32,
-    opacity: 0.9,
-  },
-  codeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 32,
-    paddingHorizontal: 16,
-  },
-  codeInputWrapper: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  codeInput: {
-    height: 60,
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderRadius: 12,
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-    backgroundColor: theme.colors.surface,
-    textAlign: 'center',
-  },
-  codeInputFocused: {
-    borderColor: theme.colors.primary,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  codeInputFilled: {
-    backgroundColor: theme.colors.primaryContainer,
-    borderColor: theme.colors.primary,
-  },
-  verifyButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  buttonDisabled: {
-    backgroundColor: theme.colors.surfaceVariant,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  verifyButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  buttonArrow: {
-    position: 'absolute',
-    right: 24,
-    top: 16,
-    fontSize: 18,
-    color: 'white',
-  },
-  resendContainer: {
-    alignItems: 'center',
-  },
-  timerText: {
-    fontSize: 16,
-    color: theme.colors.onSurfaceVariant,
-  },
-  resendButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  resendButtonText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 'auto',
-    paddingTop: 16,
-  },
-  backButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  backButtonText: {
-    color: theme.colors.onSurfaceVariant,
-    fontSize: 16,
-  },
-  successContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-    paddingHorizontal: 24,
-  },
-  successContent: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '100%',
-    maxWidth: 320,
-  },
-  successIconContainer: {
-    marginBottom: 24,
-  },
-  successIcon: {
-    fontSize: 64,
-  },
-  successTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  successMessage: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    marginBottom: 8,
-    opacity: 0.9,
-  },
-  successSubtitle: {
-    fontSize: 14,
-    color: theme.colors.onSurfaceVariant,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  loadingDots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.primary,
-    marginHorizontal: 4,
-  },
-});
 
 export default EmailVerificationScreen;

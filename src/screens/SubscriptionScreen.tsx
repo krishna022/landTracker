@@ -10,11 +10,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const SubscriptionScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
@@ -146,7 +149,10 @@ const SubscriptionScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -163,7 +169,7 @@ const SubscriptionScreen: React.FC = () => {
         <View style={styles.currentPlanCard}>
           <View style={styles.currentPlanHeader}>
             <Text style={styles.currentPlanTitle}>Current Plan</Text>
-            <View style={[styles.planBadge, { backgroundColor: theme.colors.primary }]}>
+            <View style={[styles.planBadge, styles.planBadgePrimary]}>
               <Text style={styles.planBadgeText}>
                 {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
               </Text>
@@ -283,232 +289,235 @@ const SubscriptionScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-  },
-  headerSpacer: {
-    width: 60,
-  },
-  currentPlanCard: {
-    backgroundColor: theme.colors.surface,
-    margin: 16,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  currentPlanHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  currentPlanTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-  },
-  planBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  planBadgeText: {
-    color: theme.colors.onPrimary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  daysRemaining: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-    marginBottom: 16,
-  },
-  cancelButton: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.error,
-  },
-  cancelButtonText: {
-    color: theme.colors.error,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  plansContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-  },
-  planCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  planSelected: {
-    borderColor: theme.colors.primary,
-  },
-  planPopular: {
-    borderColor: theme.colors.secondary,
-  },
-  popularBadge: {
-    position: 'absolute',
-    top: -10,
-    right: 20,
-    backgroundColor: theme.colors.secondary,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  popularBadgeText: {
-    color: theme.colors.onSecondary,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  planHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  planInfo: {
-    flex: 1,
-  },
-  planName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-    marginBottom: 8,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  planPrice: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: theme.colors.primary,
-  },
-  planPeriod: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-    marginLeft: 4,
-  },
-  planIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  planIconText: {
-    fontSize: 24,
-  },
-  featuresList: {
-    marginBottom: 20,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  featureBullet: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 12,
-    width: 20,
-    textAlign: 'center',
-  },
-  featureText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    flex: 1,
-  },
-  subscribeButton: {
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  subscribeButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  currentPlanButton: {
-    backgroundColor: theme.colors.outline,
-  },
-  currentPlanButtonText: {
-    color: theme.colors.onSurface,
-  },
-  faqContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 32,
-  },
-  faqItem: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-  },
-  faqQuestion: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 8,
-  },
-  faqAnswer: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    lineHeight: 20,
-  },
-});
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      padding: 8,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+    },
+    headerSpacer: {
+      width: 60,
+    },
+    currentPlanCard: {
+      backgroundColor: theme.colors.surface,
+      margin: 16,
+      padding: 20,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    currentPlanHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    currentPlanTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+    },
+    planBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+    },
+    planBadgePrimary: {
+      backgroundColor: theme.colors.primary,
+    },
+    planBadgeText: {
+      color: theme.colors.onPrimary,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    daysRemaining: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      marginBottom: 16,
+    },
+    cancelButton: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: theme.colors.error,
+    },
+    cancelButtonText: {
+      color: theme.colors.error,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    plansContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 16,
+    },
+    planCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    planSelected: {
+      borderColor: theme.colors.primary,
+    },
+    planPopular: {
+      borderColor: theme.colors.secondary,
+    },
+    popularBadge: {
+      position: 'absolute',
+      top: -10,
+      right: 20,
+      backgroundColor: theme.colors.secondary,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    popularBadgeText: {
+      color: theme.colors.onSecondary,
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    planHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 16,
+    },
+    planInfo: {
+      flex: 1,
+    },
+    planName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    priceContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+    },
+    planPrice: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: theme.colors.primary,
+    },
+    planPeriod: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      marginLeft: 4,
+    },
+    planIcon: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    planIconText: {
+      fontSize: 24,
+    },
+    featuresList: {
+      marginBottom: 20,
+    },
+    featureItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    featureBullet: {
+      color: theme.colors.primary,
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginRight: 12,
+      width: 20,
+      textAlign: 'center',
+    },
+    featureText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      flex: 1,
+    },
+    subscribeButton: {
+      borderRadius: 8,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    subscribeButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    currentPlanButton: {
+      backgroundColor: theme.colors.outline,
+    },
+    currentPlanButtonText: {
+      color: theme.colors.onSurface,
+    },
+    faqContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 32,
+    },
+    faqItem: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 12,
+    },
+    faqQuestion: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    faqAnswer: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      lineHeight: 20,
+    },
+  }));
 
 export default SubscriptionScreen;

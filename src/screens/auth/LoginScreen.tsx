@@ -15,7 +15,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../store/AuthContext';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ValidationUtils } from '../../utils/validation';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -37,6 +38,8 @@ const LoginScreen: React.FC = () => {
   const { login, completeAuthentication } = useAuth();
   const navigation = useNavigation();
   const route = useRoute();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   
   // Handle email verification success
   useEffect(() => {
@@ -175,6 +178,218 @@ const handleLogin = async () => {
     navigation.navigate('Register');
   };
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 24,
+      paddingTop: height * 0.08,
+      paddingBottom: 32,
+    },
+    headerSection: {
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    logoContainer: {
+      marginBottom: 24,
+    },
+    logo: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: theme.colors.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    logoText: {
+      fontSize: 32,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      opacity: 0.8,
+    },
+    formSection: {
+      marginBottom: 32,
+    },
+    inputContainer: {
+      marginBottom: 20,
+    },
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.onBackground,
+      marginBottom: 8,
+      marginLeft: 4,
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+      borderRadius: 16,
+      backgroundColor: theme.colors.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 4,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    inputFocused: {
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.primaryContainer,
+      shadowColor: theme.colors.primary,
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    inputIcon: {
+      fontSize: 20,
+      marginRight: 12,
+    },
+    input: {
+      flex: 1,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      paddingVertical: 12,
+    },
+    eyeButton: {
+      padding: 8,
+    },
+    eyeIcon: {
+      fontSize: 18,
+    },
+    forgotPassword: {
+      alignSelf: 'flex-end',
+      marginTop: -8,
+      marginBottom: 24,
+      paddingVertical: 8,
+      paddingHorizontal: 4,
+    },
+    forgotPasswordText: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      fontWeight: '600',
+    },
+    loginButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 16,
+      paddingVertical: 16,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+      marginBottom: 24,
+    },
+    buttonDisabled: {
+      backgroundColor: theme.colors.outline,
+      shadowOpacity: 0.1,
+    },
+    loginButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginRight: 8,
+    },
+    buttonArrow: {
+      color: theme.colors.onPrimary,
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 24,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: theme.colors.outline,
+      opacity: 0.5,
+    },
+    dividerText: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      marginHorizontal: 16,
+      fontWeight: '600',
+      opacity: 0.7,
+    },
+    biometricButton: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      borderRadius: 16,
+      paddingVertical: 14,
+      backgroundColor: theme.colors.surface,
+    },
+    biometricIcon: {
+      fontSize: 20,
+      marginRight: 8,
+    },
+    biometricText: {
+      color: theme.colors.primary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 'auto',
+      paddingTop: 4,
+    },
+    footerText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+    },
+    link: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      fontWeight: 'bold',
+    },
+    inputError: {
+      borderColor: theme.colors.error,
+      borderWidth: 2,
+    },
+    errorText: {
+      color: theme.colors.error,
+      fontSize: 12,
+      marginTop: 4,
+      marginLeft: 16,
+    },
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
@@ -281,217 +496,5 @@ const handleLogin = async () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: height * 0.08,
-    paddingBottom: 32,
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoContainer: {
-    marginBottom: 24,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.colors.primaryContainer,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoText: {
-    fontSize: 32,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    opacity: 0.8,
-  },
-  formSection: {
-    marginBottom: 32,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderRadius: 16,
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  inputFocused: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primaryContainer,
-    shadowColor: theme.colors.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  inputIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    paddingVertical: 12,
-  },
-  eyeButton: {
-    padding: 8,
-  },
-  eyeIcon: {
-    fontSize: 18,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: -8,
-    marginBottom: 24,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
-  loginButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 16,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    marginBottom: 24,
-  },
-  buttonDisabled: {
-    backgroundColor: theme.colors.outline,
-    shadowOpacity: 0.1,
-  },
-  loginButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  buttonArrow: {
-    color: theme.colors.onPrimary,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: theme.colors.outline,
-    opacity: 0.5,
-  },
-  dividerText: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    marginHorizontal: 16,
-    fontWeight: '600',
-    opacity: 0.7,
-  },
-  biometricButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    borderRadius: 16,
-    paddingVertical: 14,
-    backgroundColor: theme.colors.surface,
-  },
-  biometricIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  biometricText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 'auto',
-    paddingTop: 4,
-  },
-  footerText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-  },
-  link: {
-    fontSize: 14,
-    color: theme.colors.primary,
-    fontWeight: 'bold',
-  },
-  inputError: {
-    borderColor: theme.colors.error,
-    borderWidth: 2,
-  },
-  errorText: {
-    color: theme.colors.error,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 16,
-  },
-});
 
 export default LoginScreen;

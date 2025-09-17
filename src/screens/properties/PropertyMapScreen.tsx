@@ -28,7 +28,8 @@ import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Geolocation from '@react-native-community/geolocation';
 import simplify from 'simplify-js';
 import Toast from 'react-native-toast-message';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { apiService } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -57,6 +58,9 @@ const PropertyMapScreen: React.FC = () => {
   const route = useRoute();
   const { propertyId, property } = route.params as RouteParams;
   const mapRef = useRef<MapView>(null);
+
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [mapType, setMapType] = useState<MapType>('satellite');
   const [loading, setLoading] = useState(false);
@@ -836,6 +840,388 @@ const PropertyMapScreen: React.FC = () => {
     );
   };
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    backButtonText: {
+      fontSize: 20,
+      color: theme.colors.onSurface,
+      fontWeight: 'bold',
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: theme.colors.onBackground,
+    },
+    headerButtons: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    headerIconButton: {
+      width: 36,
+      borderRadius: 18,
+      backgroundColor: theme.colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 0,
+    },
+    headerIconText: {
+      fontSize: 18,
+      color: theme.colors.onSurface,
+    },
+    mapTypeButton: {
+      backgroundColor: theme.colors.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+    },
+    mapTypeText: {
+      color: theme.colors.onPrimary,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    clearButton: {
+      backgroundColor: theme.colors.error,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+    },
+    clearButtonText: {
+      color: theme.colors.onError,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    mapContainer: {
+      height: Dimensions.get('window').height * 0.9, // 90vh
+      overflow: 'hidden',
+      position: 'relative',
+    },
+    map: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+    },
+    controlsOverlay: {
+      position: 'absolute',
+      top: 3,
+      left: 3,
+      right: 3,
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      flexWrap: 'wrap',
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      borderRadius: 8,
+      padding: 3,
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    controlButton: {
+      backgroundColor: theme.colors.background,
+      paddingVertical: 6,
+      paddingHorizontal: 6,
+      margin: 2,
+      borderRadius: 6,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      minWidth: 50,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.22,
+      shadowRadius: 2.22,
+    },
+    controlButtonText: {
+      fontSize: 10,
+      color: theme.colors.onBackground,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    activeControlButton: {
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
+    },
+    legend: {
+      backgroundColor: theme.colors.surface,
+      margin: 8,
+      padding: 10,
+      borderRadius: 8,
+    },
+    legendTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    legendColor: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      marginRight: 8,
+    },
+    legendText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+    },
+    infoText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      marginBottom: 4,
+    },
+    smallBlueDot: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: 'rgba(255, 238, 0, 0.95)',
+      borderWidth: 2,
+      borderColor: '#fff',
+    },
+    drawingPoint: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: 'rgba(255, 0, 0, 0.8)',
+      borderWidth: 1,
+      borderColor: '#fff',
+    },
+    draggableMarker: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: 'rgba(33, 150, 243, 0.9)',
+      borderWidth: 3,
+      borderColor: '#fff',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    draggableMarkerInner: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: '#fff',
+    },
+    disabledButton: {
+      opacity: 0.6,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: theme.colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: Dimensions.get('window').height * 0.7,
+      minHeight: Dimensions.get('window').height * 0.4,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: theme.colors.onSurface,
+    },
+    closeButton: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: theme.colors.surfaceVariant,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    closeButtonText: {
+      fontSize: 16,
+      color: theme.colors.onSurfaceVariant,
+      fontWeight: 'bold',
+    },
+    modalBody: {
+      padding: 20,
+    },
+    detailSection: {
+      marginBottom: 16,
+    },
+    detailLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    detailValue: {
+      fontSize: 16,
+      color: theme.colors.onSurfaceVariant,
+      lineHeight: 22,
+    },
+    compassOverlay: {
+      position: 'absolute',
+      bottom: 50,
+      right: 2,
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      borderRadius: 8,
+      padding: 8,
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    compassContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    compassText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+    },
+    compassTextS: {
+      marginTop: 2,
+    },
+    compassLines: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: 4,
+    },
+    compassLine: {
+      width: 20,
+      height: 2,
+      backgroundColor: theme.colors.onSurface,
+      marginHorizontal: 2,
+    },
+    compassLineHorizontal: {
+      width: 2,
+      height: 20,
+      position: 'absolute',
+    },
+    compassLabels: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 60,
+      marginTop: 4,
+      position: 'relative',
+    },
+    compassLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      position: 'absolute',
+    },
+    compassLabelW: {
+      left: 0,
+    },
+    compassLabelE: {
+      right: 0,
+    },
+    navOverlay: {
+      position: 'absolute',
+      bottom: 50,
+      left: 10,
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      borderRadius: 25,
+      width: 50,
+      height: 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 5,
+      shadowColor: '#000',
+      padding:2,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    navIcon: {
+      fontSize: 20,
+      textAlign: 'center',
+    },
+    saveLoadingOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+    saveLoadingContainer: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 24,
+      alignItems: 'center',
+      minWidth: 200,
+    },
+    saveLoadingText: {
+      marginTop: 12,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: '500',
+    },
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.mapContainer}>
@@ -1037,387 +1423,5 @@ const PropertyMapScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 20,
-    color: theme.colors.onSurface,
-    fontWeight: 'bold',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: theme.colors.onBackground,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  headerIconButton: {
-    width: 36,
-    borderRadius: 18,
-    backgroundColor: theme.colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 0,
-  },
-  headerIconText: {
-    fontSize: 18,
-    color: theme.colors.onSurface,
-  },
-  mapTypeButton: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  mapTypeText: {
-    color: theme.colors.onPrimary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  clearButton: {
-    backgroundColor: theme.colors.error,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  clearButtonText: {
-    color: theme.colors.onError,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  mapContainer: {
-    height: Dimensions.get('window').height * 0.9, // 90vh
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-  },
-  controlsOverlay: {
-    position: 'absolute',
-    top: 3,
-    left: 3,
-    right: 3,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    flexWrap: 'wrap',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    padding: 3,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  controlButton: {
-    backgroundColor: theme.colors.background,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
-    margin: 2,
-    borderRadius: 6,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.outline,
-    minWidth: 50,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-  },
-  controlButtonText: {
-    fontSize: 10,
-    color: theme.colors.onBackground,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  activeControlButton: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  legend: {
-    backgroundColor: theme.colors.surface,
-    margin: 8,
-    padding: 10,
-    borderRadius: 8,
-  },
-  legendTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: theme.colors.onSurface,
-    marginBottom: 8,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  legendColor: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-  },
-  infoText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    marginBottom: 4,
-  },
-  smallBlueDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: 'rgba(255, 238, 0, 0.95)',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  drawingPoint: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 0, 0, 0.8)',
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  draggableMarker: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(33, 150, 243, 0.9)',
-    borderWidth: 3,
-    borderColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  draggableMarkerInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#fff',
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: Dimensions.get('window').height * 0.7,
-    minHeight: Dimensions.get('window').height * 0.4,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: theme.colors.onSurface,
-  },
-  closeButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: theme.colors.surfaceVariant,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontSize: 16,
-    color: theme.colors.onSurfaceVariant,
-    fontWeight: 'bold',
-  },
-  modalBody: {
-    padding: 20,
-  },
-  detailSection: {
-    marginBottom: 16,
-  },
-  detailLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  detailValue: {
-    fontSize: 16,
-    color: theme.colors.onSurfaceVariant,
-    lineHeight: 22,
-  },
-  compassOverlay: {
-    position: 'absolute',
-    bottom: 50,
-    right: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    padding: 8,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  compassContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  compassText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-  },
-  compassTextS: {
-    marginTop: 2,
-  },
-  compassLines: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 4,
-  },
-  compassLine: {
-    width: 20,
-    height: 2,
-    backgroundColor: theme.colors.onSurface,
-    marginHorizontal: 2,
-  },
-  compassLineHorizontal: {
-    width: 2,
-    height: 20,
-    position: 'absolute',
-  },
-  compassLabels: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 60,
-    marginTop: 4,
-    position: 'relative',
-  },
-  compassLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    position: 'absolute',
-  },
-  compassLabelW: {
-    left: 0,
-  },
-  compassLabelE: {
-    right: 0,
-  },
-  navOverlay: {
-    position: 'absolute',
-    bottom: 50,
-    left: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 25,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    padding:2,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  navIcon: {
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  saveLoadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  saveLoadingContainer: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-    minWidth: 200,
-  },
-  saveLoadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    fontWeight: '500',
-  },
-});
 
 export default PropertyMapScreen;

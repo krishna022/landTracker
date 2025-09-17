@@ -12,14 +12,240 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const HelpSupportScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [supportMessage, setSupportMessage] = useState('');
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
+
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      padding: 8,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+    },
+    headerSpacer: {
+      width: 60,
+    },
+    quickActionsContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 20,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 16,
+    },
+    quickActionsGrid: {
+      gap: 12,
+    },
+    quickAction: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    quickActionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    quickActionDescription: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    faqContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    faqItem: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    faqHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    faqQuestion: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      flex: 1,
+      marginRight: 12,
+    },
+    faqToggle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.primary,
+    },
+    faqAnswer: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      marginTop: 12,
+      lineHeight: 20,
+    },
+    contactContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    contactInfo: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    contactText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      marginBottom: 16,
+      lineHeight: 20,
+    },
+    messageInput: {
+      backgroundColor: theme.colors.background,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      marginBottom: 16,
+      minHeight: 100,
+    },
+    submitButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 8,
+      paddingVertical: 16,
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    submitButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    appInfoContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    appInfoCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    appInfoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+    appInfoLabel: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    appInfoValue: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+    },
+    rateButton: {
+      backgroundColor: theme.colors.secondary,
+      borderRadius: 8,
+      paddingVertical: 16,
+      alignItems: 'center',
+      shadowColor: theme.colors.secondary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    rateButtonText: {
+      color: theme.colors.onSecondary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    legalContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 32,
+    },
+    legalLink: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    legalLinkText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+  }));
 
   const faqs = [
     {
@@ -256,228 +482,5 @@ const HelpSupportScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-  },
-  headerSpacer: {
-    width: 60,
-  },
-  quickActionsContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-  },
-  quickActionsGrid: {
-    gap: 12,
-  },
-  quickAction: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  quickActionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  quickActionDescription: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  faqContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  faqItem: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  faqHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  faqQuestion: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-    flex: 1,
-    marginRight: 12,
-  },
-  faqToggle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.primary,
-  },
-  faqAnswer: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    marginTop: 12,
-    lineHeight: 20,
-  },
-  contactContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  contactInfo: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  contactText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  messageInput: {
-    backgroundColor: theme.colors.background,
-    borderWidth: 1,
-    borderColor: theme.colors.outline,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    marginBottom: 16,
-    minHeight: 100,
-  },
-  submitButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  submitButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  appInfoContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  appInfoCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  appInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  appInfoLabel: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  appInfoValue: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-  },
-  rateButton: {
-    backgroundColor: theme.colors.secondary,
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: theme.colors.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  rateButtonText: {
-    color: theme.colors.onSecondary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  legalContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 32,
-  },
-  legalLink: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  legalLinkText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-});
 
 export default HelpSupportScreen;

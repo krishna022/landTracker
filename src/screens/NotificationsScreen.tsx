@@ -11,11 +11,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const NotificationsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [notificationSettings, setNotificationSettings] = useState({
     propertyAlerts: true,
@@ -28,6 +31,198 @@ const NotificationsScreen: React.FC = () => {
 
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
+
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      padding: 8,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+    },
+    clearButton: {
+      padding: 8,
+    },
+    clearButtonText: {
+      fontSize: 14,
+      color: theme.colors.error,
+      fontWeight: '500',
+    },
+    channelsContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 20,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 16,
+    },
+    channelItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    channelContent: {
+      flex: 1,
+    },
+    channelTitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    channelDescription: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    settingsContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    settingItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    settingContent: {
+      flex: 1,
+    },
+    settingTitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    settingDescription: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    historyContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    notificationItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    unreadNotification: {
+      backgroundColor: theme.colors.primary + '10',
+      borderLeftWidth: 4,
+      borderLeftColor: theme.colors.primary,
+    },
+    notificationIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primary + '20',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    notificationIconText: {
+      fontSize: 18,
+    },
+    notificationContent: {
+      flex: 1,
+    },
+    notificationTitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    unreadText: {
+      fontWeight: 'bold',
+    },
+    notificationMessage: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      marginBottom: 4,
+      lineHeight: 20,
+    },
+    notificationTime: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.6,
+    },
+    unreadDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.colors.primary,
+    },
+    testContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 32,
+    },
+    testButton: {
+      backgroundColor: theme.colors.secondary,
+      borderRadius: 8,
+      paddingVertical: 16,
+      alignItems: 'center',
+      shadowColor: theme.colors.secondary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    testButtonText: {
+      color: theme.colors.onSecondary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+  }));
 
   // Mock notification history
   const notificationHistory = [
@@ -278,197 +473,5 @@ const NotificationsScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-  },
-  clearButton: {
-    padding: 8,
-  },
-  clearButtonText: {
-    fontSize: 14,
-    color: theme.colors.error,
-    fontWeight: '500',
-  },
-  channelsContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-  },
-  channelItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  channelContent: {
-    flex: 1,
-  },
-  channelTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  channelDescription: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  settingsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  settingContent: {
-    flex: 1,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  settingDescription: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  historyContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  notificationItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  unreadNotification: {
-    backgroundColor: theme.colors.primary + '10',
-    borderLeftWidth: 4,
-    borderLeftColor: theme.colors.primary,
-  },
-  notificationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  notificationIconText: {
-    fontSize: 18,
-  },
-  notificationContent: {
-    flex: 1,
-  },
-  notificationTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  unreadText: {
-    fontWeight: 'bold',
-  },
-  notificationMessage: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    marginBottom: 4,
-    lineHeight: 20,
-  },
-  notificationTime: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    opacity: 0.6,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.primary,
-  },
-  testContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 32,
-  },
-  testButton: {
-    backgroundColor: theme.colors.secondary,
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: theme.colors.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  testButtonText: {
-    color: theme.colors.onSecondary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
 
 export default NotificationsScreen;

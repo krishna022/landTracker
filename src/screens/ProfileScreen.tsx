@@ -11,29 +11,32 @@ import {
 } from 'react-native';
 import { useAuth } from '../store/AuthContext';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const { width } = Dimensions.get('window');
 
 const ProfileScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
-const handleLogout = async () => {
-  try {
-    await logout();
-    
-    // Use reset to clear the entire navigation stack and go to Login
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'Auth' }], // Reset to Auth stack
-      })
-    );
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await logout();
+      
+      // Use reset to clear the entire navigation stack and go to Login
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Auth' }], // Reset to Auth stack
+        })
+      );
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   const profileItems = [
     {
@@ -73,6 +76,241 @@ const handleLogout = async () => {
       color: '#607D8B',
     },
   ];
+
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      alignItems: 'center',
+      padding: 24,
+      paddingBottom: 32,
+      backgroundColor: theme.colors.surface,
+      borderBottomLeftRadius: 24,
+      borderBottomRightRadius: 24,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    profileImageContainer: {
+      position: 'relative',
+      marginBottom: 16,
+    },
+    profileImage: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: theme.colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 4,
+      borderColor: theme.colors.background,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    profileImageText: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      color: theme.colors.onPrimary,
+    },
+    editImageButton: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.background,
+    },
+    editImageIcon: {
+      fontSize: 16,
+    },
+    userName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    userEmail: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      marginBottom: 20,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: 24,
+      paddingVertical: 16,
+      borderRadius: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    statItem: {
+      alignItems: 'center',
+      flex: 1,
+    },
+    statDivider: {
+      width: 1,
+      height: 40,
+      backgroundColor: theme.colors.outline,
+      marginHorizontal: 16,
+    },
+    statNumber: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.primary,
+      marginBottom: 4,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: theme.colors.onBackground,
+      opacity: 0.7,
+    },
+    content: {
+      paddingHorizontal: 16,
+      paddingBottom: 32,
+    },
+    infoCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    cardHeader: {
+      marginBottom: 20,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+    },
+    infoItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    infoIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primary + '20',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    iconText: {
+      fontSize: 18,
+    },
+    infoContent: {
+      flex: 1,
+    },
+    infoLabel: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      marginBottom: 2,
+    },
+    infoValue: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: '500',
+    },
+    actionsContainer: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onBackground,
+      marginBottom: 16,
+    },
+    actionsGrid: {
+      gap: 12,
+    },
+    actionCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      borderLeftWidth: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    actionIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    actionIconText: {
+      fontSize: 18,
+    },
+    actionLabel: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+    },
+    actionArrow: {
+      fontSize: 18,
+      color: theme.colors.onSurface,
+      opacity: 0.5,
+    },
+    logoutButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.error,
+      padding: 16,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    logoutIcon: {
+      fontSize: 20,
+      marginRight: 8,
+    },
+    logoutText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onError,
+    },
+  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -179,240 +417,5 @@ const handleLogout = async () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    alignItems: 'center',
-    padding: 24,
-    paddingBottom: 32,
-    backgroundColor: theme.colors.surface,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileImageContainer: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: theme.colors.background,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileImageText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: theme.colors.onPrimary,
-  },
-  editImageButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.background,
-  },
-  editImageIcon: {
-    fontSize: 16,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-    marginBottom: 20,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: theme.colors.outline,
-    marginHorizontal: 16,
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.colors.primary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: theme.colors.onBackground,
-    opacity: 0.7,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  infoCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeader: {
-    marginBottom: 20,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  infoIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  iconText: {
-    fontSize: 18,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    fontWeight: '500',
-  },
-  actionsContainer: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-  },
-  actionsGrid: {
-    gap: 12,
-  },
-  actionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  actionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  actionIconText: {
-    fontSize: 18,
-  },
-  actionLabel: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-  },
-  actionArrow: {
-    fontSize: 18,
-    color: theme.colors.onSurface,
-    opacity: 0.5,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.error,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  logoutIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onError,
-  },
-});
 
 export default ProfileScreen;

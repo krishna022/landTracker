@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { apiService } from '../../services/api';
 
 // You need to replace this with your actual API key from Google Cloud Console
@@ -85,6 +86,8 @@ const safeFilterLocations = (data: any, query: string): LocationData[] => {
 
 const AddPropertyScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   const [formData, setFormData] = useState<PropertyFormData>({
     name: '',
     propertyType: '',
@@ -406,6 +409,86 @@ const AddPropertyScreen: React.FC = () => {
     </View>
   );
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.colors.background },
+    scrollView: { flex: 1 },
+    content: { padding: 16 },
+    stepIndicator: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 5, paddingHorizontal: 32 },
+    step: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.colors.surface, borderWidth: 2, borderColor: theme.colors.outline, alignItems: 'center', justifyContent: 'center' },
+    stepActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+    stepText: { fontSize: 16, fontWeight: '600', color: theme.colors.onSurfaceVariant },
+    stepTextActive: { color: theme.colors.onPrimary },
+    stepLine: { flex: 1, height: 2, backgroundColor: theme.colors.outline, marginHorizontal: 16 },
+    stepLineActive: { backgroundColor: theme.colors.primary },
+    stepTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.onBackground, textAlign: 'center', marginBottom: 10 },
+    title: { fontSize: 24, fontWeight: 'bold', color: theme.colors.onBackground, marginBottom: 24 },
+    form: { gap: 20 },
+    inputGroup: { gap: 8 },
+    label: { fontSize: 16, fontWeight: '600', color: theme.colors.onBackground },
+    input: { borderWidth: 1, borderColor: theme.colors.outline, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, backgroundColor: theme.colors.surface, color: theme.colors.onSurface },
+    textArea: { height: 100, paddingTop: 12 },
+    mapSection: { gap: 8 },
+    mapPlaceholder: { height: 200, backgroundColor: theme.colors.surface, borderRadius: 8, borderWidth: 2, borderColor: theme.colors.outline, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', padding: 20 },
+    mapPlaceholderText: { fontSize: 16, fontWeight: '600', color: theme.colors.onSurface, textAlign: 'center', marginBottom: 8 },
+    mapPlaceholderSubtext: { fontSize: 14, color: theme.colors.onSurface, textAlign: 'center', opacity: 0.7 },
+    photoSection: { gap: 8 },
+    photoButton: { backgroundColor: theme.colors.surface, borderWidth: 2, borderColor: theme.colors.primary, borderStyle: 'dashed', borderRadius: 8, paddingVertical: 16, alignItems: 'center' },
+    photoButtonText: { color: theme.colors.primary, fontSize: 16, fontWeight: '600' },
+    footer: { flexDirection: 'row', padding: 16, gap: 12, borderTopWidth: 1, borderTopColor: theme.colors.outline, backgroundColor: theme.colors.surface },
+    cancelButton: { flex: 1, paddingVertical: 16, alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: theme.colors.outline },
+    cancelButtonText: { color: theme.colors.onSurface, fontSize: 16, fontWeight: '600' },
+    submitButton: { flex: 1, backgroundColor: theme.colors.primary, paddingVertical: 16, alignItems: 'center', borderRadius: 8 },
+    submitButtonDisabled: { backgroundColor: theme.colors.outline },
+    submitButtonText: { color: theme.colors.onPrimary, fontSize: 16, fontWeight: '600' },
+    areaContainer: { flexDirection: 'row', gap: 8 },
+    areaValueInput: { flex: 2 },
+    areaUnitInput: { flex: 1 },
+    areaUnitPicker: { flex: 1 },
+    inputText: { color: theme.colors.onSurface, fontSize: 16 },
+    placeholderText: { color: theme.colors.onSurfaceVariant, fontSize: 16 },
+    modalContainer: { flex: 1, backgroundColor: theme.colors.surface },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: theme.colors.outline },
+    modalTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.onSurface },
+    closeButton: { padding: 8 },
+    closeButtonText: { color: theme.colors.primary, fontSize: 16 },
+    searchInput: { margin: 16, padding: 12, borderWidth: 1, borderColor: theme.colors.outline, borderRadius: 8, fontSize: 16, backgroundColor: theme.colors.surface },
+    locationList: { flex: 1 },
+    locationItem: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.colors.outline },
+    locationItemText: { fontSize: 16, color: theme.colors.onSurface },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    loadingText: { fontSize: 16, color: theme.colors.onSurface, opacity: 0.7 },
+    pickerContainer: { borderWidth: 1, borderColor: theme.colors.outline, borderRadius: 8, backgroundColor: theme.colors.surface, overflow: 'hidden' },
+    loadingIndicator: {
+      position: 'absolute',
+      right: 16,
+      top: 50,
+    },
+    autocompleteContainer: {
+      position: 'absolute',
+      top: 90,
+      left: 16,
+      right: 16,
+      zIndex: 1000,
+      backgroundColor: theme.colors.surface,
+      borderColor: theme.colors.outline,
+      borderWidth: 1,
+      borderRadius: 8,
+      maxHeight: 200,
+    },
+    autocompleteItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    autocompleteText: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+    },
+    emptyContainer: { padding: 20, alignItems: 'center' },
+    emptyText: { fontSize: 16, color: theme.colors.onSurface, opacity: 0.7 },
+    picker: { height: 50, width: '100%' },
+  }));
+
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -674,88 +757,5 @@ const AddPropertyScreen: React.FC = () => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  // Keep your existing styles
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  scrollView: { flex: 1 },
-  content: { padding: 16 },
-  stepIndicator: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 5, paddingHorizontal: 32 },
-  step: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.colors.surface, borderWidth: 2, borderColor: theme.colors.outline, alignItems: 'center', justifyContent: 'center' },
-  stepActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-  stepText: { fontSize: 16, fontWeight: '600', color: theme.colors.onSurfaceVariant },
-  stepTextActive: { color: theme.colors.onPrimary },
-  stepLine: { flex: 1, height: 2, backgroundColor: theme.colors.outline, marginHorizontal: 16 },
-  stepLineActive: { backgroundColor: theme.colors.primary },
-  stepTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.onBackground, textAlign: 'center', marginBottom: 10 },
-  title: { fontSize: 24, fontWeight: 'bold', color: theme.colors.onBackground, marginBottom: 24 },
-  form: { gap: 20 },
-  inputGroup: { gap: 8 },
-  label: { fontSize: 16, fontWeight: '600', color: theme.colors.onBackground },
-  input: { borderWidth: 1, borderColor: theme.colors.outline, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, backgroundColor: theme.colors.surface, color: theme.colors.onSurface },
-  textArea: { height: 100, paddingTop: 12 },
-  mapSection: { gap: 8 },
-  mapPlaceholder: { height: 200, backgroundColor: theme.colors.surface, borderRadius: 8, borderWidth: 2, borderColor: theme.colors.outline, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  mapPlaceholderText: { fontSize: 16, fontWeight: '600', color: theme.colors.onSurface, textAlign: 'center', marginBottom: 8 },
-  mapPlaceholderSubtext: { fontSize: 14, color: theme.colors.onSurface, textAlign: 'center', opacity: 0.7 },
-  photoSection: { gap: 8 },
-  photoButton: { backgroundColor: theme.colors.surface, borderWidth: 2, borderColor: theme.colors.primary, borderStyle: 'dashed', borderRadius: 8, paddingVertical: 16, alignItems: 'center' },
-  photoButtonText: { color: theme.colors.primary, fontSize: 16, fontWeight: '600' },
-  footer: { flexDirection: 'row', padding: 16, gap: 12, borderTopWidth: 1, borderTopColor: theme.colors.outline, backgroundColor: theme.colors.surface },
-  cancelButton: { flex: 1, paddingVertical: 16, alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: theme.colors.outline },
-  cancelButtonText: { color: theme.colors.onSurface, fontSize: 16, fontWeight: '600' },
-  submitButton: { flex: 1, backgroundColor: theme.colors.primary, paddingVertical: 16, alignItems: 'center', borderRadius: 8 },
-  submitButtonDisabled: { backgroundColor: theme.colors.outline },
-  submitButtonText: { color: theme.colors.onPrimary, fontSize: 16, fontWeight: '600' },
-  areaContainer: { flexDirection: 'row', gap: 8 },
-  areaValueInput: { flex: 2 },
-  areaUnitInput: { flex: 1 },
-  areaUnitPicker: { flex: 1 },
-  inputText: { color: theme.colors.onSurface, fontSize: 16 },
-  placeholderText: { color: theme.colors.onSurfaceVariant, fontSize: 16 },
-  modalContainer: { flex: 1, backgroundColor: theme.colors.surface },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: theme.colors.outline },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.onSurface },
-  closeButton: { padding: 8 },
-  closeButtonText: { color: theme.colors.primary, fontSize: 16 },
-  searchInput: { margin: 16, padding: 12, borderWidth: 1, borderColor: theme.colors.outline, borderRadius: 8, fontSize: 16, backgroundColor: theme.colors.surface },
-  locationList: { flex: 1 },
-  locationItem: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.colors.outline },
-  locationItemText: { fontSize: 16, color: theme.colors.onSurface },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  loadingText: { fontSize: 16, color: theme.colors.onSurface, opacity: 0.7 },
-  pickerContainer: { borderWidth: 1, borderColor: theme.colors.outline, borderRadius: 8, backgroundColor: theme.colors.surface, overflow: 'hidden' },
-
-  // New styles for the custom autocomplete feature
-  loadingIndicator: {
-    position: 'absolute',
-    right: 16,
-    top: 50,
-  },
-  autocompleteContainer: {
-    position: 'absolute',
-    top: 90, // Position it below the input field
-    left: 16,
-    right: 16,
-    zIndex: 1000,
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.outline,
-    borderWidth: 1,
-    borderRadius: 8,
-    maxHeight: 200, // Limit dropdown height
-  },
-  autocompleteItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  autocompleteText: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-  },
-  emptyContainer: { padding: 20, alignItems: 'center' },
-  emptyText: { fontSize: 16, color: theme.colors.onSurface, opacity: 0.7 },
-  picker: { height: 50, width: '100%' },
-});
 
 export default AddPropertyScreen;

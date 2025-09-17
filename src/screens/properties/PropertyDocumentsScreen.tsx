@@ -15,7 +15,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { pick } from '@react-native-documents/picker';
 import { launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { apiService } from '../../services/api';
 
 interface RouteParams {
@@ -37,6 +38,8 @@ interface Document {
 const PropertyDocumentsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   const { propertyId, property } = route.params as RouteParams;
 
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -280,6 +283,186 @@ const PropertyDocumentsScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    backButtonText: {
+      fontSize: 20,
+      color: theme.colors.onSurface,
+      fontWeight: 'bold',
+    },
+    headerContent: {
+      flex: 1,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+    },
+    addButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    addButtonText: {
+      fontSize: 20,
+      color: theme.colors.primary,
+      fontWeight: 'bold',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 32,
+    },
+    emptyIcon: {
+      fontSize: 64,
+      marginBottom: 16,
+      opacity: 0.5,
+    },
+    emptyTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    listContainer: {
+      padding: 16,
+    },
+    documentItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      marginBottom: 8,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+    },
+    documentIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    documentIconText: {
+      fontSize: 20,
+    },
+    documentInfo: {
+      flex: 1,
+    },
+    documentName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    documentDetails: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    deleteButton: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    deleteButtonText: {
+      fontSize: 16,
+      color: 'white',
+      fontWeight: 'bold',
+    },
+    addDocumentContainer: {
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      backgroundColor: theme.colors.primaryContainer,
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      borderStyle: 'dashed',
+    },
+    addDocumentIcon: {
+      fontSize: 32,
+      color: theme.colors.primary,
+      fontWeight: 'bold',
+    },
+    addDocumentText: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      marginTop: 8,
+      fontWeight: '500',
+    },
+    uploadOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    uploadText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: 'white',
+    },
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       {/* <View style={styles.header}>
@@ -339,7 +522,7 @@ const PropertyDocumentsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = useThemedStyles((theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -517,6 +700,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
   },
-});
+}));
 
 export default PropertyDocumentsScreen;

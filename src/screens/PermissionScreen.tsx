@@ -14,7 +14,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,6 +30,8 @@ interface PermissionItem {
 
 const PermissionScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -198,6 +201,147 @@ const PermissionScreen: React.FC = () => {
   const allGranted = permissions.every(perm => perm.granted);
   const someGranted = permissions.some(perm => perm.granted);
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingTop: height * 0.05,
+      paddingBottom: 32,
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      opacity: 0.8,
+      lineHeight: 24,
+    },
+    permissionsContainer: {
+      marginBottom: 40,
+    },
+    permissionCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 16,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    permissionHeader: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    permissionIcon: {
+      fontSize: 32,
+      marginRight: 16,
+      marginTop: 2,
+    },
+    permissionInfo: {
+      flex: 1,
+      marginRight: 16,
+    },
+    permissionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    permissionDescription: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      lineHeight: 20,
+    },
+    permissionButton: {
+      backgroundColor: theme.colors.primary,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 8,
+      minWidth: 80,
+      alignItems: 'center',
+    },
+    permissionGranted: {
+      backgroundColor: theme.colors.secondary,
+    },
+    permissionDisabled: {
+      opacity: 0.6,
+    },
+    permissionButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    permissionGrantedText: {
+      color: theme.colors.onSecondary,
+    },
+    actionsContainer: {
+      marginBottom: 32,
+    },
+    primaryButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 12,
+      paddingVertical: 16,
+      alignItems: 'center',
+      marginBottom: 16,
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    primaryButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    secondaryButton: {
+      backgroundColor: 'transparent',
+      borderRadius: 12,
+      paddingVertical: 16,
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+    },
+    secondaryButtonText: {
+      color: theme.colors.primary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    footer: {
+      alignItems: 'center',
+      paddingHorizontal: 20,
+    },
+    footerText: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -279,146 +423,5 @@ const PermissionScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: height * 0.05,
-    paddingBottom: 32,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    opacity: 0.8,
-    lineHeight: 24,
-  },
-  permissionsContainer: {
-    marginBottom: 40,
-  },
-  permissionCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: theme.colors.outline,
-  },
-  permissionHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  permissionIcon: {
-    fontSize: 32,
-    marginRight: 16,
-    marginTop: 2,
-  },
-  permissionInfo: {
-    flex: 1,
-    marginRight: 16,
-  },
-  permissionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 8,
-  },
-  permissionDescription: {
-    fontSize: 14,
-    color: theme.colors.onSurfaceVariant,
-    lineHeight: 20,
-  },
-  permissionButton: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  permissionGranted: {
-    backgroundColor: theme.colors.secondary,
-  },
-  permissionDisabled: {
-    opacity: 0.6,
-  },
-  permissionButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  permissionGrantedText: {
-    color: theme.colors.onSecondary,
-  },
-  actionsContainer: {
-    marginBottom: 32,
-  },
-  primaryButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  primaryButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-  },
-  secondaryButtonText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  footerText: {
-    fontSize: 14,
-    color: theme.colors.onSurfaceVariant,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});
 
 export default PermissionScreen;

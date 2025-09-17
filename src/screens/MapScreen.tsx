@@ -24,7 +24,8 @@ import { useNavigation } from '@react-navigation/native';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Geolocation from '@react-native-community/geolocation';
 import simplify from 'simplify-js';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import { apiService } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -54,7 +55,11 @@ const SMOOTH_TOLERANCE = 0.00003; // lower = preserve more detail
 
 const MapScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   const mapRef = useRef<MapView | null>(null);
+
+  const dotSize = 14;
 
   const [mapType, setMapType] = useState<MapType>('standard');
   const [properties, setProperties] = useState<Property[]>([]);
@@ -384,6 +389,133 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
   // polygon coordinates for MapView (Polygon auto-closes)
   const polygonCoordinates = boundaryPoints.map((p) => ({ latitude: p.latitude, longitude: p.longitude }));
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    mapContainer: {
+      flex: 1,
+    },
+    map: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 12,
+      borderBottomWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: theme.colors.onBackground,
+    },
+    headerButtons: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    mapTypeButton: {
+      backgroundColor: theme.colors.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+    },
+    mapTypeText: {
+      color: theme.colors.onPrimary,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    clearButton: {
+      backgroundColor: theme.colors.error,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+    },
+    clearButtonText: {
+      color: theme.colors.onError,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+    },
+    controls: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      flexWrap: 'wrap',
+      padding: 8,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.outline,
+      backgroundColor: theme.colors.surface,
+    },
+    controlButton: {
+      backgroundColor: theme.colors.background,
+      paddingVertical: 10,
+      paddingHorizontal: 10,
+      margin: 4,
+      borderRadius: 8,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      minWidth: 90,
+    },
+    controlButtonText: {
+      fontSize: 12,
+      color: theme.colors.onBackground,
+      fontWeight: '600',
+    },
+    activeControlButton: {
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
+    },
+    legend: {
+      backgroundColor: theme.colors.surface,
+      margin: 8,
+      padding: 10,
+      borderRadius: 8,
+    },
+    legendTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    legendColor: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 8,
+    },
+    legendText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+    },
+    smallBlueDot: {
+      width: dotSize,
+      height: dotSize,
+      borderRadius: dotSize / 2,
+      backgroundColor: '#4285F4',
+      position: 'absolute',
+    },
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -532,31 +664,5 @@ const handleMarkerDrag = (index: number, newCoordinate: { latitude: number; long
     </SafeAreaView>
   );
 };
-
-const dotSize = 14;
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderColor: theme.colors.outline },
-  title: { fontSize: 18, fontWeight: '700', color: theme.colors.onBackground },
-  headerButtons: { flexDirection: 'row', gap: 8 },
-  mapTypeButton: { backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
-  mapTypeText: { color: theme.colors.onPrimary, fontSize: 12, fontWeight: '600' },
-  clearButton: { backgroundColor: theme.colors.error, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
-  clearButtonText: { color: theme.colors.onError, fontSize: 12, fontWeight: '600' },
-  mapContainer: { flex: 1, overflow: 'hidden' },
-  map: { ...StyleSheet.absoluteFillObject },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.surface },
-  loadingText: { marginTop: 16, fontSize: 16, color: theme.colors.onSurface, opacity: 0.8 },
-  controls: { flexDirection: 'row', justifyContent: 'space-around', flexWrap: 'wrap', padding: 8, borderTopWidth: 1, borderTopColor: theme.colors.outline, backgroundColor: theme.colors.surface },
-  controlButton: { backgroundColor: theme.colors.background, paddingVertical: 10, paddingHorizontal: 10, margin: 4, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: theme.colors.outline, minWidth: 90 },
-  controlButtonText: { fontSize: 12, color: theme.colors.onBackground, fontWeight: '600' },
-  activeControlButton: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-  legend: { backgroundColor: theme.colors.surface, margin: 8, padding: 10, borderRadius: 8 },
-  legendTitle: { fontSize: 14, fontWeight: '700', color: theme.colors.onSurface, marginBottom: 8 },
-  legendItem: { flexDirection: 'row', alignItems: 'center' },
-  legendColor: { width: 16, height: 16, borderRadius: 8, marginRight: 8 },
-  legendText: { fontSize: 14, color: theme.colors.onSurface },
-  smallBlueDot: { width: dotSize, height: dotSize, borderRadius: dotSize / 2, backgroundColor: 'rgba(255, 238, 0, 0.95)', borderWidth: 2, borderColor: '#fff', elevation: 3 },
-});
 
 export default MapScreen;

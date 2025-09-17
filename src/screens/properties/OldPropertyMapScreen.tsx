@@ -28,7 +28,8 @@ import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Geolocation from '@react-native-community/geolocation';
 import simplify from 'simplify-js';
 import Toast from 'react-native-toast-message';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { apiService } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 
@@ -57,6 +58,9 @@ const PropertyMapScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
   const route = useRoute();
+
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   const { propertyId, property } = route.params as RouteParams;
   const mapRef = useRef<MapView>(null);
 
@@ -1140,7 +1144,7 @@ const PropertyMapScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = useThemedStyles((theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -1520,6 +1524,6 @@ const styles = StyleSheet.create({
     color: theme.colors.onSurface,
     fontWeight: '500',
   },
-});
+}));
 
 export default PropertyMapScreen;

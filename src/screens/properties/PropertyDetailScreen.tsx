@@ -11,13 +11,16 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const { width } = Dimensions.get('window');
 
 const PropertyDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
   const [selectedTab, setSelectedTab] = useState('overview');
 
   // Mock property data - in real app this would come from route params or API
@@ -184,6 +187,347 @@ const PropertyDetailScreen: React.FC = () => {
     }
   };
 
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      padding: 8,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    favoriteButton: {
+      padding: 8,
+    },
+    favoriteIcon: {
+      fontSize: 24,
+      color: theme.colors.primary,
+    },
+    propertyHeader: {
+      padding: 20,
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    propertyName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    propertyLocation: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    tabsContainer: {
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    tab: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginRight: 8,
+      borderRadius: 8,
+      backgroundColor: 'transparent',
+    },
+    activeTab: {
+      backgroundColor: theme.colors.primary + '20',
+    },
+    tabIcon: {
+      fontSize: 16,
+      marginRight: 6,
+    },
+    tabLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+    },
+    activeTabLabel: {
+      color: theme.colors.primary,
+      fontWeight: '600',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    tabContent: {
+      padding: 16,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 16,
+    },
+    detailCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 16,
+    },
+    infoGrid: {
+      gap: 16,
+    },
+    infoItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    infoLabel: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: '500',
+    },
+    infoValue: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: '400',
+    },
+    priceText: {
+      color: theme.colors.primary,
+      fontWeight: 'bold',
+    },
+    statusBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusText: {
+      color: 'white',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    description: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      lineHeight: 24,
+    },
+    imageScroll: {
+      marginTop: 8,
+    },
+    imageContainer: {
+      marginRight: 12,
+    },
+    imagePlaceholder: {
+      width: 150,
+      height: 100,
+      backgroundColor: theme.colors.primary + '20',
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      borderStyle: 'dashed',
+    },
+    imagePlaceholderText: {
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    featureCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    featureIcon: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: theme.colors.primary + '20',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    featureIconText: {
+      fontSize: 20,
+    },
+    featureContent: {
+      flex: 1,
+    },
+    featureLabel: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    featureDescription: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    documentCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    documentIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.secondary + '20',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    documentIconText: {
+      fontSize: 18,
+    },
+    documentContent: {
+      flex: 1,
+    },
+    documentName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    documentDate: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.6,
+    },
+    documentArrow: {
+      fontSize: 18,
+      color: theme.colors.onSurface,
+      opacity: 0.5,
+    },
+    addDocumentButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.primary + '20',
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      borderStyle: 'dashed',
+    },
+    addDocumentIcon: {
+      fontSize: 20,
+      color: theme.colors.primary,
+      marginRight: 8,
+    },
+    addDocumentText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '600',
+    },
+    mapContainer: {
+      marginTop: 8,
+    },
+    mapPlaceholder: {
+      height: 250,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
+      borderStyle: 'dashed',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    mapTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 12,
+    },
+    mapSubtitle: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      marginBottom: 4,
+    },
+    mapFeatures: {
+      marginTop: 16,
+      alignItems: 'flex-start',
+    },
+    mapFeature: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      marginBottom: 4,
+    },
+    actionButtons: {
+      flexDirection: 'row',
+      padding: 16,
+      gap: 12,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.outline,
+      backgroundColor: theme.colors.surface,
+    },
+    contactButton: {
+      flex: 1,
+      backgroundColor: theme.colors.secondary,
+      paddingVertical: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    contactButtonText: {
+      color: theme.colors.onSecondary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    scheduleButton: {
+      flex: 1,
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    scheduleButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -237,346 +581,5 @@ const PropertyDetailScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-  favoriteButton: {
-    padding: 8,
-  },
-  favoriteIcon: {
-    fontSize: 24,
-    color: theme.colors.primary,
-  },
-  propertyHeader: {
-    padding: 20,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  propertyName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-    marginBottom: 8,
-  },
-  propertyLocation: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  tabsContainer: {
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 8,
-    borderRadius: 8,
-    backgroundColor: 'transparent',
-  },
-  activeTab: {
-    backgroundColor: theme.colors.primary + '20',
-  },
-  tabIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
-  tabLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-  },
-  activeTabLabel: {
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  tabContent: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-  },
-  detailCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 16,
-  },
-  infoGrid: {
-    gap: 16,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    fontWeight: '400',
-  },
-  priceText: {
-    color: theme.colors.primary,
-    fontWeight: 'bold',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  description: {
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    lineHeight: 24,
-  },
-  imageScroll: {
-    marginTop: 8,
-  },
-  imageContainer: {
-    marginRight: 12,
-  },
-  imagePlaceholder: {
-    width: 150,
-    height: 100,
-    backgroundColor: theme.colors.primary + '20',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    borderStyle: 'dashed',
-  },
-  imagePlaceholderText: {
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-  featureCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  featureIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: theme.colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  featureIconText: {
-    fontSize: 20,
-  },
-  featureContent: {
-    flex: 1,
-  },
-  featureLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  featureDescription: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  documentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  documentIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.secondary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  documentIconText: {
-    fontSize: 18,
-  },
-  documentContent: {
-    flex: 1,
-  },
-  documentName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  documentDate: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.6,
-  },
-  documentArrow: {
-    fontSize: 18,
-    color: theme.colors.onSurface,
-    opacity: 0.5,
-  },
-  addDocumentButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.primary + '20',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    borderStyle: 'dashed',
-  },
-  addDocumentIcon: {
-    fontSize: 20,
-    color: theme.colors.primary,
-    marginRight: 8,
-  },
-  addDocumentText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
-  mapContainer: {
-    marginTop: 8,
-  },
-  mapPlaceholder: {
-    height: 250,
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: theme.colors.outline,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  mapTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 12,
-  },
-  mapSubtitle: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-    marginBottom: 4,
-  },
-  mapFeatures: {
-    marginTop: 16,
-    alignItems: 'flex-start',
-  },
-  mapFeature: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    marginBottom: 4,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.outline,
-    backgroundColor: theme.colors.surface,
-  },
-  contactButton: {
-    flex: 1,
-    backgroundColor: theme.colors.secondary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  contactButtonText: {
-    color: theme.colors.onSecondary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  scheduleButton: {
-    flex: 1,
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  scheduleButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
 export default PropertyDetailScreen;

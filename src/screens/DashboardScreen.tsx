@@ -10,13 +10,265 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const { width } = Dimensions.get('window');
 
 const DashboardScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const { state } = useTheme();
+
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      backgroundColor: theme.colors.primary,
+      padding: 20,
+      paddingTop: 10,
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
+      marginBottom: 20,
+    },
+    userInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    avatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: theme.colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 15,
+    },
+    avatarText: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+    },
+    greetingContainer: {
+      flex: 1,
+    },
+    greeting: {
+      fontSize: 16,
+      color: theme.colors.onPrimary,
+      opacity: 0.8,
+    },
+    userName: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.onPrimary,
+    },
+    notificationButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    notificationIcon: {
+      fontSize: 18,
+      color: theme.colors.onSurface,
+    },
+    statsSection: {
+      paddingHorizontal: 20,
+      marginBottom: 30,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 15,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 15,
+      marginHorizontal: 5,
+      alignItems: 'center',
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    statIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    statIcon: {
+      fontSize: 20,
+    },
+    statNumber: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.primary,
+      marginBottom: 5,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      textAlign: 'center',
+    },
+    actionsSection: {
+      paddingHorizontal: 20,
+      marginBottom: 30,
+    },
+    actionsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+    },
+    actionCard: {
+      width: (width - 50) / 2,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 15,
+      alignItems: 'center',
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    actionIconContainer: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: theme.colors.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    actionIcon: {
+      fontSize: 24,
+    },
+    actionTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 5,
+      textAlign: 'center',
+    },
+    actionSubtitle: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      textAlign: 'center',
+    },
+    activitySection: {
+      paddingHorizontal: 20,
+      marginBottom: 30,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    seeAllText: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    emptyActivityContainer: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 40,
+      alignItems: 'center',
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    emptyActivityIcon: {
+      fontSize: 48,
+      marginBottom: 15,
+    },
+    emptyActivityTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    emptyActivityText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    getStartedButton: {
+      backgroundColor: theme.colors.primary,
+      paddingHorizontal: 30,
+      paddingVertical: 12,
+      borderRadius: 25,
+    },
+    getStartedButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    tipsSection: {
+      paddingHorizontal: 20,
+      marginBottom: 30,
+    },
+    tipCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    tipIcon: {
+      fontSize: 24,
+      marginRight: 15,
+    },
+    tipContent: {
+      flex: 1,
+    },
+    tipTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 5,
+    },
+    tipText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      lineHeight: 20,
+    },
+  }));
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -41,25 +293,25 @@ const DashboardScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: state.theme.colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header Section */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: state.theme.colors.primary }]}>
           <View style={styles.userInfo}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
+            <View style={[styles.avatar, { backgroundColor: state.theme.colors.surface }]}>
+              <Text style={[styles.avatarText, { color: state.theme.colors.onSurface }]}>
                 {user?.name?.charAt(0) || 'U'}
               </Text>
             </View>
             <View style={styles.greetingContainer}>
-              <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.userName}>
+              <Text style={[styles.greeting, { color: state.theme.colors.onPrimary }]}>{getGreeting()}</Text>
+              <Text style={[styles.userName, { color: state.theme.colors.onPrimary }]}>
                 {user?.name || 'User'}
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Text style={styles.notificationIcon}>🔔</Text>
+          <TouchableOpacity style={[styles.notificationButton, { backgroundColor: state.theme.colors.surface }]}>
+            <Text style={[styles.notificationIcon, { color: state.theme.colors.onSurface }]}>🔔</Text>
           </TouchableOpacity>
         </View>
 
@@ -147,7 +399,7 @@ const DashboardScreen: React.FC = () => {
               Your property activities will appear here
             </Text>
             <TouchableOpacity style={styles.getStartedButton} onPress={handleAddProperty}>
-              <Text style={styles.getStartedText}>Get Started</Text>
+              <Text style={styles.getStartedButtonText}>Get Started</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -169,246 +421,5 @@ const DashboardScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 24,
-    paddingBottom: 16,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.colors.onPrimary,
-  },
-  greetingContainer: {
-    flex: 1,
-  },
-  greeting: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-  },
-  notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  notificationIcon: {
-    fontSize: 20,
-  },
-  statsSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: theme.colors.surface,
-    padding: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  statIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.primaryContainer,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statIcon: {
-    fontSize: 20,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.primary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    opacity: 0.8,
-  },
-  actionsSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  actionCard: {
-    width: (width - 60) / 2,
-    backgroundColor: theme.colors.surface,
-    padding: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  actionIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: theme.colors.primaryContainer,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  actionIcon: {
-    fontSize: 24,
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onBackground,
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  actionSubtitle: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    textAlign: 'center',
-  },
-  activitySection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  seeAllText: {
-    fontSize: 14,
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
-  emptyActivityContainer: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 20,
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyActivityIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  emptyActivityTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.onBackground,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyActivityText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  getStartedButton: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  getStartedText: {
-    color: theme.colors.onPrimary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tipsSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  tipCard: {
-    backgroundColor: theme.colors.primaryContainer,
-    borderRadius: 20,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  tipIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  tipContent: {
-    flex: 1,
-  },
-  tipTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onPrimaryContainer,
-    marginBottom: 8,
-  },
-  tipText: {
-    fontSize: 14,
-    color: theme.colors.onPrimaryContainer,
-    opacity: 0.8,
-    lineHeight: 20,
-  },
-});
 
 export default DashboardScreen;

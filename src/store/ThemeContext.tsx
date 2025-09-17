@@ -66,10 +66,13 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         dispatch({ type: 'SET_MODE', payload: mode, systemIsDark: systemColorScheme === 'dark' });
       } catch (error) {
         console.error('Error loading theme preference:', error);
+        // Fallback to system theme if AsyncStorage fails
         dispatch({ type: 'SET_MODE', payload: 'system', systemIsDark: systemColorScheme === 'dark' });
       }
     };
 
+    // Initialize immediately with system preference as fallback
+    dispatch({ type: 'SET_MODE', payload: 'system', systemIsDark: systemColorScheme === 'dark' });
     initializeTheme();
   }, []);
 
@@ -110,7 +113,13 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    // Return a fallback context if ThemeProvider is not available
+    console.warn('useTheme called outside of ThemeProvider, using fallback');
+    return {
+      state: initialState,
+      setThemeMode: async () => {},
+      toggleTheme: () => {},
+    };
   }
   return context;
 };

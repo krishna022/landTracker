@@ -12,11 +12,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -25,6 +28,154 @@ const EditProfileScreen: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      padding: 8,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+    },
+    headerSpacer: {
+      width: 60,
+    },
+    imageSection: {
+      alignItems: 'center',
+      paddingVertical: 24,
+    },
+    profileImageContainer: {
+      position: 'relative',
+      marginBottom: 12,
+    },
+    profileImage: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: theme.colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 4,
+      borderColor: theme.colors.background,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    profileImageText: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      color: theme.colors.onPrimary,
+    },
+    changePhotoButton: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.background,
+    },
+    changePhotoText: {
+      fontSize: 16,
+    },
+    changePhotoHint: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    form: {
+      paddingHorizontal: 16,
+      paddingBottom: 24,
+    },
+    inputGroup: {
+      marginBottom: 20,
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      marginBottom: 8,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      fontSize: 16,
+      backgroundColor: theme.colors.surface,
+      color: theme.colors.onSurface,
+    },
+    textArea: {
+      height: 100,
+      textAlignVertical: 'top',
+    },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 32,
+    },
+    saveButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 8,
+      paddingVertical: 16,
+      alignItems: 'center',
+      marginBottom: 12,
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    saveButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    cancelButton: {
+      backgroundColor: 'transparent',
+      borderRadius: 8,
+      paddingVertical: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    cancelButtonText: {
+      color: theme.colors.primary,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+  }));
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -142,153 +293,5 @@ const EditProfileScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-  },
-  headerSpacer: {
-    width: 60,
-  },
-  imageSection: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  profileImageContainer: {
-    position: 'relative',
-    marginBottom: 12,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: theme.colors.background,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileImageText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: theme.colors.onPrimary,
-  },
-  changePhotoButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.background,
-  },
-  changePhotoText: {
-    fontSize: 16,
-  },
-  changePhotoHint: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  form: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: theme.colors.outline,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: theme.colors.surface,
-    color: theme.colors.onSurface,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  buttonContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  saveButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  saveButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.outline,
-  },
-  cancelButtonText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-});
 
 export default EditProfileScreen;

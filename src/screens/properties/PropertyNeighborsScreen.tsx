@@ -11,13 +11,17 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { apiService } from '../../services/api';
 
 const PropertyNeighborsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { propertyId, property } = route.params as any || {};
+
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -179,7 +183,7 @@ const PropertyNeighborsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = useThemedStyles((theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -295,6 +299,6 @@ const styles = StyleSheet.create({
     color: theme.colors.onSurface,
     opacity: 0.8,
   },
-});
+}));
 
 export default PropertyNeighborsScreen;

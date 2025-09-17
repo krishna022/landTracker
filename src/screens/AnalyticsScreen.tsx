@@ -10,13 +10,16 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { theme } from '../utils/theme';
+import { useTheme } from '../store/ThemeContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const { width } = Dimensions.get('window');
 
 const AnalyticsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const { state: themeState } = useTheme();
+  const theme = themeState.theme;
 
   const [selectedPeriod, setSelectedPeriod] = useState('month');
 
@@ -38,6 +41,269 @@ const AnalyticsScreen: React.FC = () => {
       { type: 'Industrial', count: 1, percentage: 8 },
     ],
   };
+
+  const styles = useThemedStyles((theme) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    backButton: {
+      padding: 8,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+    },
+    headerSpacer: {
+      width: 60,
+    },
+    periodSelector: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 8,
+    },
+    periodButton: {
+      flex: 1,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 20,
+      backgroundColor: theme.colors.surface,
+      alignItems: 'center',
+    },
+    periodButtonActive: {
+      backgroundColor: theme.colors.primary,
+    },
+    periodButtonText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+    },
+    periodButtonTextActive: {
+      color: theme.colors.onPrimary,
+    },
+    metricsContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.onBackground,
+      marginBottom: 16,
+    },
+    statsGrid: {
+      gap: 12,
+    },
+    statCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      borderLeftWidth: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    statHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    statIcon: {
+      fontSize: 24,
+      marginRight: 12,
+    },
+    statContent: {
+      flex: 1,
+    },
+    statValue: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    statTitle: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      marginBottom: 2,
+    },
+    statSubtitle: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    distributionContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    propertyTypeCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    propertyTypeInfo: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    propertyTypeName: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+    },
+    propertyTypeCount: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+    },
+    progressBar: {
+      height: 6,
+      backgroundColor: theme.colors.outline,
+      borderRadius: 3,
+      marginBottom: 8,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+    percentageText: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      textAlign: 'right',
+    },
+    activityContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    activityItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    activityIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primary + '20',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    activityIconText: {
+      fontSize: 18,
+    },
+    activityContent: {
+      flex: 1,
+    },
+    activityAction: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      marginBottom: 2,
+    },
+    activityProperty: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      marginBottom: 2,
+    },
+    activityDate: {
+      fontSize: 12,
+      color: theme.colors.onSurface,
+      opacity: 0.6,
+    },
+    insightsContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+    insightCard: {
+      flexDirection: 'row',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    insightIcon: {
+      fontSize: 24,
+      marginRight: 12,
+    },
+    insightContent: {
+      flex: 1,
+    },
+    insightTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    insightText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      opacity: 0.8,
+      lineHeight: 20,
+    },
+    exportContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 32,
+    },
+    exportButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 8,
+      paddingVertical: 16,
+      alignItems: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    exportButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+  }));
 
   const StatCard = ({
     title,
@@ -237,268 +503,5 @@ const AnalyticsScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.outline,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-  },
-  headerSpacer: {
-    width: 60,
-  },
-  periodSelector: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  periodButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: theme.colors.surface,
-    alignItems: 'center',
-  },
-  periodButtonActive: {
-    backgroundColor: theme.colors.primary,
-  },
-  periodButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-  },
-  periodButtonTextActive: {
-    color: theme.colors.onPrimary,
-  },
-  metricsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.onBackground,
-    marginBottom: 16,
-  },
-  statsGrid: {
-    gap: 12,
-  },
-  statCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  statHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  statContent: {
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  statTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-    marginBottom: 2,
-  },
-  statSubtitle: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  distributionContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  propertyTypeCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  propertyTypeInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  propertyTypeName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-  },
-  propertyTypeCount: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: theme.colors.outline,
-    borderRadius: 3,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  percentageText: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    opacity: 0.7,
-    textAlign: 'right',
-  },
-  activityContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  activityIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  activityIconText: {
-    fontSize: 18,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityAction: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.colors.onSurface,
-    marginBottom: 2,
-  },
-  activityProperty: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    marginBottom: 2,
-  },
-  activityDate: {
-    fontSize: 12,
-    color: theme.colors.onSurface,
-    opacity: 0.6,
-  },
-  insightsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  insightCard: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  insightIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  insightContent: {
-    flex: 1,
-  },
-  insightTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  insightText: {
-    fontSize: 14,
-    color: theme.colors.onSurface,
-    opacity: 0.8,
-    lineHeight: 20,
-  },
-  exportContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 32,
-  },
-  exportButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  exportButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
 
 export default AnalyticsScreen;

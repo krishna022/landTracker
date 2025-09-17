@@ -18,7 +18,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Toast from 'react-native-toast-message';
-import { theme } from '../../utils/theme';
+import { useTheme } from '../../store/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { apiService } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -40,6 +41,9 @@ const PropertyImageScreen: React.FC = () => {
     const route = useRoute();
     const { propertyId, property } = route.params as RouteParams;
 
+    const { state: themeState } = useTheme();
+    const theme = themeState.theme;
+
     const [images, setImages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -51,6 +55,324 @@ const PropertyImageScreen: React.FC = () => {
     // Image loading states
     const [imageLoadingStates, setImageLoadingStates] = useState<{[key: string]: boolean}>({});
     const [imageErrorStates, setImageErrorStates] = useState<{[key: string]: boolean}>({});
+
+    const styles = useThemedStyles((theme) => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.colors.background,
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 16,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.colors.outline,
+        },
+        backButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: theme.colors.surface,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+        },
+        backButtonText: {
+            fontSize: 20,
+            color: theme.colors.onSurface,
+            fontWeight: 'bold',
+        },
+        headerContent: {
+            flex: 1,
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            color: theme.colors.onBackground,
+        },
+        subtitle: {
+            fontSize: 14,
+            color: theme.colors.onSurface,
+            opacity: 0.8,
+        },
+        addButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: theme.colors.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        addButtonText: {
+            fontSize: 20,
+            color: theme.colors.onPrimary,
+            fontWeight: 'bold',
+        },
+        loadingContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        loadingText: {
+            marginTop: 16,
+            fontSize: 16,
+            color: theme.colors.onSurface,
+            opacity: 0.8,
+        },
+        gridContainer: {
+            padding: 16,
+        },
+        imageContainer: {
+            width: imageSize,
+            height: imageSize,
+            margin: 4,
+            borderRadius: 8,
+            overflow: 'hidden',
+            backgroundColor: theme.colors.surface,
+        },
+        image: {
+            width: '100%',
+            height: '100%',
+        },
+        deleteButton: {
+            position: 'absolute',
+            top: 4,
+            right: 4,
+            width: 24,
+            height: 24,
+            borderRadius: 12,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        deleteButtonText: {
+            fontSize: 16,
+            color: 'white',
+            fontWeight: 'bold',
+        },
+        imageLoadingContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        },
+        imageErrorContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.colors.surface,
+            borderRadius: 8,
+        },
+        imageErrorText: {
+            fontSize: 12,
+            color: theme.colors.onSurface,
+            opacity: 0.7,
+            marginBottom: 8,
+        },
+        retryButton: {
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            backgroundColor: theme.colors.primary,
+            borderRadius: 4,
+        },
+        retryButtonText: {
+            fontSize: 12,
+            color: theme.colors.onPrimary,
+            fontWeight: '500',
+        },
+        addImageContainer: {
+            width: imageSize,
+            height: imageSize,
+            margin: 4,
+            borderRadius: 8,
+            backgroundColor: theme.colors.primaryContainer,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 2,
+            borderColor: theme.colors.primary,
+            borderStyle: 'dashed',
+        },
+        addImageContainerEmpty: {
+            width: width - 32, // Full width minus padding
+            height: 200, // Fixed height for empty state
+            margin: 16,
+            borderRadius: 12,
+            backgroundColor: theme.colors.primaryContainer,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 2,
+            borderColor: theme.colors.primary,
+            borderStyle: 'dashed',
+        },
+        addImageIcon: {
+            fontSize: 32,
+            color: theme.colors.primary,
+            fontWeight: 'bold',
+        },
+        addImageIconEmpty: {
+            fontSize: 48,
+            color: theme.colors.primary,
+            fontWeight: 'bold',
+            marginBottom: 8,
+        },
+        addImageText: {
+            fontSize: 12,
+            color: theme.colors.primary,
+            marginTop: 4,
+            fontWeight: '500',
+        },
+        addImageTextEmpty: {
+            fontSize: 18,
+            color: theme.colors.primary,
+            fontWeight: '600',
+            textAlign: 'center',
+        },
+        addImageSubtext: {
+            fontSize: 14,
+            color: theme.colors.onSurface,
+            opacity: 0.7,
+            marginTop: 8,
+            textAlign: 'center',
+        },
+        uploadOverlay: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        uploadText: {
+            marginTop: 16,
+            fontSize: 16,
+            color: 'white',
+        },
+        // Full Screen Viewer Styles
+        viewerContainer: {
+            flex: 1,
+            backgroundColor: 'black',
+        },
+        viewerHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 15,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            paddingTop: Platform.OS === 'ios' ? 50 : 15,
+        },
+        viewerCloseButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        viewerCloseText: {
+            fontSize: 20,
+            color: 'white',
+            fontWeight: 'bold',
+        },
+        viewerTitleContainer: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        viewerTitle: {
+            fontSize: 16,
+            color: 'white',
+            fontWeight: '500',
+        },
+        viewerDeleteButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: 'rgba(255, 59, 48, 0.8)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        viewerDeleteText: {
+            fontSize: 16,
+        },
+        viewerImageContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        viewerImage: {
+            width: width,
+            height: height * 0.7,
+        },
+        viewerImageLoading: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+        viewerImageLoadingText: {
+            marginTop: 16,
+            fontSize: 16,
+            color: 'white',
+        },
+        viewerImageError: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        viewerImageErrorText: {
+            fontSize: 18,
+            color: 'white',
+            marginBottom: 20,
+        },
+        viewerRetryButton: {
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            backgroundColor: theme.colors.primary,
+            borderRadius: 8,
+        },
+        viewerRetryButtonText: {
+            fontSize: 16,
+            color: theme.colors.onPrimary,
+            fontWeight: '500',
+        },
+        viewerNavigation: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 30,
+            paddingBottom: 40,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        },
+        navButton: {
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        navButtonDisabled: {
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        },
+        navButtonText: {
+            fontSize: 24,
+            color: 'white',
+            fontWeight: 'bold',
+        },
+        navButtonTextDisabled: {
+            color: 'rgba(255, 255, 255, 0.3)',
+        },
+    }));
 
     useEffect(() => {
         // Use photos from the property data passed from PropertiesScreen
@@ -550,323 +872,5 @@ const PropertyImageScreen: React.FC = () => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.outline,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: theme.colors.surface,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    backButtonText: {
-        fontSize: 20,
-        color: theme.colors.onSurface,
-        fontWeight: 'bold',
-    },
-    headerContent: {
-        flex: 1,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: theme.colors.onBackground,
-    },
-    subtitle: {
-        fontSize: 14,
-        color: theme.colors.onSurface,
-        opacity: 0.8,
-    },
-    addButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: theme.colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    addButtonText: {
-        fontSize: 20,
-        color: theme.colors.onPrimary,
-        fontWeight: 'bold',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        marginTop: 16,
-        fontSize: 16,
-        color: theme.colors.onSurface,
-        opacity: 0.8,
-    },
-    gridContainer: {
-        padding: 16,
-    },
-    imageContainer: {
-        width: imageSize,
-        height: imageSize,
-        margin: 4,
-        borderRadius: 8,
-        overflow: 'hidden',
-        backgroundColor: theme.colors.surface,
-    },
-    image: {
-        width: '100%',
-        height: '100%',
-    },
-    deleteButton: {
-        position: 'absolute',
-        top: 4,
-        right: 4,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    deleteButtonText: {
-        fontSize: 16,
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    imageLoadingContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    },
-    imageErrorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: theme.colors.surface,
-        borderRadius: 8,
-    },
-    imageErrorText: {
-        fontSize: 12,
-        color: theme.colors.onSurface,
-        opacity: 0.7,
-        marginBottom: 8,
-    },
-    retryButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: theme.colors.primary,
-        borderRadius: 4,
-    },
-    retryButtonText: {
-        fontSize: 12,
-        color: theme.colors.onPrimary,
-        fontWeight: '500',
-    },
-    addImageContainer: {
-        width: imageSize,
-        height: imageSize,
-        margin: 4,
-        borderRadius: 8,
-        backgroundColor: theme.colors.primaryContainer,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: theme.colors.primary,
-        borderStyle: 'dashed',
-    },
-    addImageContainerEmpty: {
-        width: width - 32, // Full width minus padding
-        height: 200, // Fixed height for empty state
-        margin: 16,
-        borderRadius: 12,
-        backgroundColor: theme.colors.primaryContainer,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: theme.colors.primary,
-        borderStyle: 'dashed',
-    },
-    addImageIcon: {
-        fontSize: 32,
-        color: theme.colors.primary,
-        fontWeight: 'bold',
-    },
-    addImageIconEmpty: {
-        fontSize: 48,
-        color: theme.colors.primary,
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
-    addImageText: {
-        fontSize: 12,
-        color: theme.colors.primary,
-        marginTop: 4,
-        fontWeight: '500',
-    },
-    addImageTextEmpty: {
-        fontSize: 18,
-        color: theme.colors.primary,
-        fontWeight: '600',
-        textAlign: 'center',
-    },
-    addImageSubtext: {
-        fontSize: 14,
-        color: theme.colors.onSurface,
-        opacity: 0.7,
-        marginTop: 8,
-        textAlign: 'center',
-    },
-    uploadOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    uploadText: {
-        marginTop: 16,
-        fontSize: 16,
-        color: 'white',
-    },
-    // Full Screen Viewer Styles
-    viewerContainer: {
-        flex: 1,
-        backgroundColor: 'black',
-    },
-    viewerHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        paddingTop: Platform.OS === 'ios' ? 50 : 15,
-    },
-    viewerCloseButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    viewerCloseText: {
-        fontSize: 20,
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    viewerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    viewerTitle: {
-        fontSize: 16,
-        color: 'white',
-        fontWeight: '500',
-    },
-    viewerDeleteButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 59, 48, 0.8)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    viewerDeleteText: {
-        fontSize: 16,
-    },
-    viewerImageContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    viewerImage: {
-        width: width,
-        height: height * 0.7,
-    },
-    viewerImageLoading: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    viewerImageLoadingText: {
-        marginTop: 16,
-        fontSize: 16,
-        color: 'white',
-    },
-    viewerImageError: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    viewerImageErrorText: {
-        fontSize: 18,
-        color: 'white',
-        marginBottom: 20,
-    },
-    viewerRetryButton: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        backgroundColor: theme.colors.primary,
-        borderRadius: 8,
-    },
-    viewerRetryButtonText: {
-        fontSize: 16,
-        color: theme.colors.onPrimary,
-        fontWeight: '500',
-    },
-    viewerNavigation: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 30,
-        paddingBottom: 40,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    },
-    navButton: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    navButtonDisabled: {
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    navButtonText: {
-        fontSize: 24,
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    navButtonTextDisabled: {
-        color: 'rgba(255, 255, 255, 0.3)',
-    },
-});
 
 export default PropertyImageScreen;
