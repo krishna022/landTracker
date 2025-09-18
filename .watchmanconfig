@@ -1,5 +1,0 @@
-{
-  "ignore_dirs": ["node_modules", ".git", ".metro-cache"],
-  "fsevents_latency": 0.1,
-  "disabled": true
-}
