@@ -1,0 +1,250 @@
+import React, { useEffect, useState } from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text } from 'react-native';
+
+import { useAuth } from '../store/AuthContext';
+import { usePreferences } from '../store/PreferencesContext';
+import LoadingScreen from '../screens/LoadingScreen';
+import PermissionScreen from '../screens/PermissionScreen';
+import CountryLanguageScreen from '../screens/CountryLanguageScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import EmailVerificationScreen from '../screens/auth/EmailVerificationScreen';
+import PinAuthScreen from '../screens/auth/PinAuthScreen';
+import PinSetupScreen from '../screens/auth/PinSetupScreen';
+import DashboardScreen from '../screens/DashboardScreen';
+import PropertiesScreen from '../screens/properties/PropertiesScreen';
+import PropertyDetailScreen from '../screens/properties/PropertyDetailScreen';
+import AddPropertyScreen from '../screens/properties/AddPropertyScreen';
+import PropertyImageScreen from '../screens/properties/PropertyImageScreen';
+import PropertyMapScreen from '../screens/properties/PropertyMapScreen';
+import PropertyDocumentsScreen from '../screens/properties/PropertyDocumentsScreen';
+import PropertyNeighborsScreen from '../screens/properties/PropertyNeighborsScreen';
+import MapScreen from '../screens/MapScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import HelpSupportScreen from '../screens/HelpSupportScreen';
+
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Auth Stack
+const AuthStack = ({
+  requiresEmailVerification,
+  emailVerificationEmail,
+  permissionsCompleted
+}: {
+  requiresEmailVerification: boolean;
+  emailVerificationEmail: string | null;
+  permissionsCompleted: boolean;
+}) => {
+  const initialRouteName = !permissionsCompleted
+    ? "Permissions"
+    : requiresEmailVerification
+    ? "EmailVerification"
+    : "Login";
+
+  return (
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={initialRouteName}
+    >
+      <Stack.Screen name="Permissions" component={PermissionScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen
+        name="EmailVerification"
+        component={EmailVerificationScreen}
+        initialParams={emailVerificationEmail ? { email: emailVerificationEmail } : undefined}
+      />
+      <Stack.Screen name="PinAuth" component={PinAuthScreen} />
+      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+    </Stack.Navigator>
+  );
+};
+
+// Properties Stack
+const PropertiesStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen 
+      name="PropertiesList" 
+      component={PropertiesScreen} 
+      options={{ title: 'My Properties' }}
+    />
+    <Stack.Screen 
+      name="PropertyDetail" 
+      component={PropertyDetailScreen} 
+      options={{ title: 'Property Details' }}
+    />
+    <Stack.Screen 
+      name="AddProperty" 
+      component={AddPropertyScreen} 
+      options={{ title: 'Add Property' }}
+    />
+    <Stack.Screen 
+      name="PropertyImages" 
+      component={PropertyImageScreen} 
+      options={{ title: 'Property Images' }}
+    />
+    <Stack.Screen 
+      name="PropertyMap" 
+      component={PropertyMapScreen} 
+      options={{ title: 'Property Map' }}
+    />
+    <Stack.Screen 
+      name="PropertyDocuments" 
+      component={PropertyDocumentsScreen} 
+      options={{ title: 'Property Documents' }}
+    />
+    <Stack.Screen 
+      name="PropertyNeighbors" 
+      component={PropertyNeighborsScreen} 
+      options={{ title: 'Property Neighbors' }}
+    />
+  </Stack.Navigator>
+);
+
+// Main App Tabs
+const MainTabs = () => (
+  <Tab.Navigator
+    screenOptions={{
+      tabBarActiveTintColor: '#2E7D32',
+      tabBarInactiveTintColor: '#9E9E9E',
+      headerShown: false,
+    }}
+  >
+    <Tab.Screen 
+      name="Dashboard" 
+      component={DashboardScreen}
+      options={{
+        tabBarLabel: 'Dashboard',
+        tabBarIcon: ({ color, size }) => (
+          <Text style={{ fontSize: size, color }}>🏠</Text>
+        ),
+      }}
+    />
+    <Tab.Screen 
+      name="Properties" 
+      component={PropertiesStack}
+      options={{
+        tabBarLabel: 'Properties',
+        tabBarIcon: ({ color, size }) => (
+          <Text style={{ fontSize: size, color }}>🏢</Text>
+        ),
+      }}
+    />
+    <Tab.Screen 
+      name="Map" 
+      component={MapScreen}
+      options={{
+        tabBarLabel: 'Map',
+        tabBarIcon: ({ color, size }) => (
+          <Text style={{ fontSize: size, color }}>🗺️</Text>
+        ),
+      }}
+    />
+    <Tab.Screen 
+      name="Profile" 
+      component={ProfileScreen}
+      options={{
+        tabBarLabel: 'Profile',
+        tabBarIcon: ({ color, size }) => (
+          <Text style={{ fontSize: size, color }}>👤</Text>
+        ),
+      }}
+    />
+  </Tab.Navigator>
+);
+
+// Main App Navigator
+// AppNavigator.tsx - Updated component
+const AppNavigator = () => {
+  const { state } = useAuth();
+  const { preferences } = usePreferences();
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
+  const [requiresPinAuth, setRequiresPinAuth] = useState<boolean>(false);
+  const [permissionsCompleted, setPermissionsCompleted] = useState<boolean>(false);
+
+  useEffect(() => {
+    checkInitialSession();
+  }, []);
+
+  const checkInitialSession = async () => {
+    try {
+      // Check if permissions have been completed
+      const permissionsStatus = await AsyncStorage.getItem('permissions_completed');
+      setPermissionsCompleted(permissionsStatus === 'true');
+
+      // Check if we have user data
+      const userData = await AsyncStorage.getItem('auth_user');
+      
+      if (userData) {
+        const user = JSON.parse(userData);
+        
+        // Case 2: If user has PIN setup, remove tokens and require PIN auth
+        if (user.hasPinSetup) {
+          await AsyncStorage.removeItem('auth_tokens');
+          setRequiresPinAuth(true);
+        }
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+      // Clean up on error
+      await AsyncStorage.removeItem('auth_tokens');
+      await AsyncStorage.removeItem('auth_user');
+    } finally {
+      setIsCheckingSession(false);
+    }
+  };
+
+  // Show loading while checking session or preferences
+  if (state.isLoading || isCheckingSession || !preferences.isInitialized) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {state.isAuthenticated && state.user?.hasPinSetup ? (
+        // User is fully authenticated and has PIN setup, show main app
+        <>
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+          <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+        </>
+      ) : state.isAuthenticated && !state.user?.hasPinSetup ? (
+        // User is authenticated but needs PIN setup (from login)
+        <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+      ) : state.requiresEmailVerification ? (
+        // Email verification required
+        <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
+      ) : requiresPinAuth ? (
+        // Case 2: User needs to enter PIN (app reopened)
+        <Stack.Screen name="PinAuth" component={PinAuthScreen} />
+      ) : !preferences.country ? (
+        // User hasn't set preferences yet, show country/language selection
+        <Stack.Screen name="CountryLanguage" component={CountryLanguageScreen} />
+      ) : (
+        // No session, show auth flow
+        <Stack.Screen name="Auth">
+          {() => <AuthStack
+            requiresEmailVerification={state.requiresEmailVerification}
+            emailVerificationEmail={state.emailVerificationEmail}
+            permissionsCompleted={permissionsCompleted}
+          />}
+        </Stack.Screen>
+      )}
+    </Stack.Navigator>
+  );
+};
+
+export default AppNavigator;
