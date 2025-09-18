@@ -120,5 +120,45 @@ export const commonStyles = {
   },
 };
 
+// RTL-aware styles
+export const getRTLStyles = (isRTL: boolean) => ({
+  container: {
+    flex: 1,
+    backgroundColor: lightTheme.colors.background,
+    direction: isRTL ? 'rtl' : 'ltr' as const,
+  },
+  row: {
+    flexDirection: isRTL ? 'row-reverse' : 'row' as const,
+  },
+  textAlign: {
+    textAlign: isRTL ? 'right' : 'left' as const,
+  },
+  textAlignReverse: {
+    textAlign: isRTL ? 'left' : 'right' as const,
+  },
+  alignItemsStart: {
+    alignItems: isRTL ? 'flex-end' : 'flex-start' as const,
+  },
+  alignItemsEnd: {
+    alignItems: isRTL ? 'flex-start' : 'flex-end' as const,
+  },
+  marginStart: {
+    marginLeft: isRTL ? 0 : 16,
+    marginRight: isRTL ? 16 : 0,
+  },
+  marginEnd: {
+    marginLeft: isRTL ? 16 : 0,
+    marginRight: isRTL ? 0 : 16,
+  },
+  paddingStart: {
+    paddingLeft: isRTL ? 0 : 16,
+    paddingRight: isRTL ? 16 : 0,
+  },
+  paddingEnd: {
+    paddingLeft: isRTL ? 16 : 0,
+    paddingRight: isRTL ? 0 : 16,
+  },
+});
+
 // Export default theme for backward compatibility
 export const theme = lightTheme;

@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
-import { lightTheme, darkTheme } from '../utils/theme';
+import { lightTheme, darkTheme, getRTLStyles } from '../utils/theme';
+import { useTranslation } from '../utils/translations';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -9,6 +10,8 @@ interface ThemeState {
   mode: ThemeMode;
   isDark: boolean;
   theme: typeof lightTheme;
+  isRTL: boolean;
+  rtlStyles: ReturnType<typeof getRTLStyles>;
 }
 
 interface ThemeContextType {
@@ -19,12 +22,15 @@ interface ThemeContextType {
 
 type ThemeAction =
   | { type: 'SET_MODE'; payload: ThemeMode; systemIsDark?: boolean }
-  | { type: 'SET_THEME'; payload: { isDark: boolean; theme: typeof lightTheme } };
+  | { type: 'SET_THEME'; payload: { isDark: boolean; theme: typeof lightTheme } }
+  | { type: 'SET_RTL'; payload: { isRTL: boolean; rtlStyles: ReturnType<typeof getRTLStyles> } };
 
 const initialState: ThemeState = {
   mode: 'system',
   isDark: false,
   theme: lightTheme,
+  isRTL: false,
+  rtlStyles: getRTLStyles(false),
 };
 
 const themeReducer = (state: ThemeState, action: ThemeAction): ThemeState => {
@@ -46,6 +52,12 @@ const themeReducer = (state: ThemeState, action: ThemeAction): ThemeState => {
         isDark: action.payload.isDark,
         theme: action.payload.theme,
       };
+    case 'SET_RTL':
+      return {
+        ...state,
+        isRTL: action.payload.isRTL,
+        rtlStyles: action.payload.rtlStyles,
+      };
     default:
       return state;
   }
@@ -56,6 +68,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(themeReducer, initialState);
   const systemColorScheme = useColorScheme();
+  const { isRTL } = useTranslation();
 
   // Initialize theme based on system preference
   useEffect(() => {
@@ -82,6 +95,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       dispatch({ type: 'SET_MODE', payload: 'system', systemIsDark: systemColorScheme === 'dark' });
     }
   }, [systemColorScheme]);
+
+  // Update RTL when language changes
+  useEffect(() => {
+    const rtlStyles = getRTLStyles(isRTL);
+    dispatch({ type: 'SET_RTL', payload: { isRTL, rtlStyles } });
+  }, [isRTL]);
 
   const setThemeMode = async (mode: ThemeMode) => {
     try {

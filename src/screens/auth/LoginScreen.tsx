@@ -17,6 +17,7 @@ import Toast from 'react-native-toast-message';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../store/ThemeContext';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { useTranslation } from '../../utils/translations';
 import { ValidationUtils } from '../../utils/validation';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -40,6 +41,7 @@ const LoginScreen: React.FC = () => {
   const route = useRoute();
   const { state: themeState } = useTheme();
   const theme = themeState.theme;
+  const { t } = useTranslation();
   
   // Handle email verification success
   useEffect(() => {
@@ -47,8 +49,8 @@ const LoginScreen: React.FC = () => {
     if (params?.emailVerified) {
       Toast.show({
         type: 'success',
-        text1: 'Email Verified!',
-        text2: 'You can now sign in with your credentials',
+        text1: t('emailVerified'),
+        text2: t('emailVerifiedMessage'),
       });
       // Pre-fill email if available
       if (params.email) {
@@ -68,7 +70,7 @@ const LoginScreen: React.FC = () => {
       if (firstError) {
         Toast.show({
           type: 'error',
-          text1: 'Validation Error',
+          text1: t('validationError'),
           text2: firstError,
           position: 'bottom'
         });
@@ -96,8 +98,8 @@ const handleLogin = async () => {
   if (!email || !password) {
     Toast.show({
       type: 'error',
-      text1: 'Validation Error',
-      text2: 'Please fill in all fields',
+      text1: t('validationError'),
+      text2: t('pleaseFillAllFields'),
     });
     return;
   }
@@ -114,8 +116,8 @@ const handleLogin = async () => {
       
       Toast.show({
         type: 'info',
-        text1: 'Email Verification Required',
-        text2: 'Redirecting to email verification...',
+        text1: t('emailVerificationRequired'),
+        text2: t('redirectingToVerification'),
       });
       
       return;
@@ -130,16 +132,16 @@ const handleLogin = async () => {
       
       Toast.show({
         type: 'success',
-        text1: 'Login Successful',
-        text2: 'Welcome back!',
+        text1: t('loginSuccessful'),
+        text2: t('welcomeBackMessage'),
       });
    } else {
     console.log('LoginScreen: User needs PIN setup, navigating to PinSetup');
     
     Toast.show({
       type: 'info',
-      text1: 'Security Setup',
-      text2: 'Please set up your PIN for security',
+      text1: t('securitySetup'),
+      text2: t('setupPinMessage'),
     });
     
     // Use reset to clear the navigation stack and replace with PinSetup
@@ -155,7 +157,7 @@ const handleLogin = async () => {
     console.error('LoginScreen: Login failed:', error);
     Toast.show({
       type: 'error',
-      text1: 'Login Failed',
+      text1: t('loginFailed'),
       text2: error.response?.data?.message || error.message || 'Please try again',
     });
     
@@ -167,8 +169,8 @@ const handleLogin = async () => {
   const handleForgotPassword = () => {
     Toast.show({
       type: 'info',
-      text1: 'Reset Password',
-      text2: 'Password reset functionality will be implemented here',
+      text1: t('resetPassword'),
+      text2: t('resetPasswordMessage'),
       position: 'bottom'
     });
   };
@@ -178,10 +180,11 @@ const handleLogin = async () => {
     navigation.navigate('Register');
   };
 
-  const styles = useThemedStyles((theme) => StyleSheet.create({
+  const styles = useThemedStyles((theme, rtlStyles) => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     keyboardView: {
       flex: 1,
@@ -242,10 +245,12 @@ const handleLogin = async () => {
       fontWeight: '600',
       color: theme.colors.onBackground,
       marginBottom: 8,
-      marginLeft: 4,
+      marginLeft: rtlStyles?.marginStart.marginLeft || 4,
+      marginRight: rtlStyles?.marginStart.marginRight || 0,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     inputWrapper: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       borderWidth: 2,
       borderColor: theme.colors.outline,
@@ -269,13 +274,15 @@ const handleLogin = async () => {
     },
     inputIcon: {
       fontSize: 20,
-      marginRight: 12,
+      marginRight: rtlStyles?.marginEnd.marginRight || 12,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     input: {
       flex: 1,
       fontSize: 16,
       color: theme.colors.onSurface,
       paddingVertical: 12,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     eyeButton: {
       padding: 8,
@@ -284,7 +291,7 @@ const handleLogin = async () => {
       fontSize: 18,
     },
     forgotPassword: {
-      alignSelf: 'flex-end',
+      alignSelf: (rtlStyles?.alignItemsEnd.alignItems as 'flex-start' | 'flex-end') || 'flex-end',
       marginTop: -8,
       marginBottom: 24,
       paddingVertical: 8,
@@ -294,12 +301,13 @@ const handleLogin = async () => {
       fontSize: 14,
       color: theme.colors.primary,
       fontWeight: '600',
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     loginButton: {
       backgroundColor: theme.colors.primary,
       borderRadius: 16,
       paddingVertical: 16,
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       shadowColor: theme.colors.primary,
@@ -317,7 +325,8 @@ const handleLogin = async () => {
       color: theme.colors.onPrimary,
       fontSize: 16,
       fontWeight: 'bold',
-      marginRight: 8,
+      marginRight: rtlStyles?.marginEnd.marginRight || 8,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     buttonArrow: {
       color: theme.colors.onPrimary,
@@ -325,7 +334,7 @@ const handleLogin = async () => {
       fontWeight: 'bold',
     },
     divider: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       marginVertical: 24,
     },
@@ -343,7 +352,7 @@ const handleLogin = async () => {
       opacity: 0.7,
     },
     biometricButton: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: 2,
@@ -354,7 +363,8 @@ const handleLogin = async () => {
     },
     biometricIcon: {
       fontSize: 20,
-      marginRight: 8,
+      marginRight: rtlStyles?.marginEnd.marginRight || 8,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     biometricText: {
       color: theme.colors.primary,
@@ -362,7 +372,7 @@ const handleLogin = async () => {
       fontWeight: '600',
     },
     footer: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 'auto',
@@ -386,7 +396,9 @@ const handleLogin = async () => {
       color: theme.colors.error,
       fontSize: 12,
       marginTop: 4,
-      marginLeft: 16,
+      marginLeft: rtlStyles?.marginStart.marginLeft || 16,
+      marginRight: rtlStyles?.marginStart.marginRight || 0,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
   }));
 
@@ -407,18 +419,18 @@ const handleLogin = async () => {
                 <Text style={styles.logoText}>🏞️</Text>
               </View>
             </View>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to manage your properties</Text>
+            <Text style={styles.title}>{t('welcomeBack')}</Text>
+            <Text style={styles.subtitle}>{t('signInSubtitle')}</Text>
           </View>
 
           <View style={styles.formSection}>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Email Address</Text>
+              <Text style={styles.inputLabel}>{t('emailAddress')}</Text>
               <View style={[styles.inputWrapper, emailFocused && styles.inputFocused, errors.email && styles.inputError]}>
                 <Text style={styles.inputIcon}>📧</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter your email"
+                  placeholder={t('enterEmail')}
                   placeholderTextColor={theme.colors.outline}
                   value={email}
                   onChangeText={(value) => handleInputChange('email', value)}
@@ -433,12 +445,12 @@ const handleLogin = async () => {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Password</Text>
+              <Text style={styles.inputLabel}>{t('password')}</Text>
               <View style={[styles.inputWrapper, passwordFocused && styles.inputFocused, errors.password && styles.inputError]}>
                 <Text style={styles.inputIcon}>🔐</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter your password"
+                  placeholder={t('enterPassword')}
                   placeholderTextColor={theme.colors.outline}
                   value={password}
                   onChangeText={(value) => handleInputChange('password', value)}
@@ -458,7 +470,7 @@ const handleLogin = async () => {
             </View>
 
             <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              <Text style={styles.forgotPasswordText}>{t('forgotPassword')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -468,14 +480,14 @@ const handleLogin = async () => {
               activeOpacity={0.8}
             >
               <Text style={styles.loginButtonText}>
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? t('signingIn') : t('signIn')}
               </Text>
               {!loading && <Text style={styles.buttonArrow}>→</Text>}
             </TouchableOpacity>
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
+              <Text style={styles.dividerText}>{t('or')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -486,9 +498,9 @@ const handleLogin = async () => {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={styles.footerText}>{t('dontHaveAccount')} </Text>
             <TouchableOpacity onPress={handleRegister} activeOpacity={0.7}>
-              <Text style={styles.link}>Create Account</Text>
+              <Text style={styles.link}>{t('createAccount')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

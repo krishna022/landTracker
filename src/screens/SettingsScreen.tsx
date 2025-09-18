@@ -9,14 +9,18 @@ import {
   Switch,
   Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../store/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import { usePreferences } from '../store/PreferencesContext';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const SettingsScreen: React.FC = () => {
-  const { state, setThemeMode, toggleTheme } = useTheme();
-  const { t } = useTranslation();
+  const navigation = useNavigation();
+  const { state: themeState, setThemeMode, toggleTheme } = useTheme();
+  const theme = themeState.theme;
   const { preferences, setLanguage } = usePreferences();
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState(true);
   const [locationServices, setLocationServices] = useState(true);
   const [biometricAuth, setBiometricAuth] = useState(false);
@@ -49,8 +53,8 @@ const SettingsScreen: React.FC = () => {
       items: [
         {
           label: 'Dark Mode',
-          value: state.isDark,
-          onToggle: () => setThemeMode(state.isDark ? 'light' : 'dark'),
+          value: themeState.isDark,
+          onToggle: () => setThemeMode(themeState.isDark ? 'light' : 'dark'),
           type: 'toggle',
         },
         {
@@ -167,49 +171,6 @@ const SettingsScreen: React.FC = () => {
     },
   ];
 
-  const renderSettingItem = (item: any, index: number) => {
-    if (item.type === 'toggle') {
-      return (
-        <View key={index} style={[styles.settingItem, { borderBottomColor: state.theme.colors.outline }]}>
-          <View style={styles.settingContent}>
-            <Text style={[styles.settingLabel, { color: state.theme.colors.onSurface }]}>
-              {item.label}
-            </Text>
-            {item.subtitle && (
-              <Text style={[styles.settingSubtitle, { color: state.theme.colors.onSurface, opacity: 0.6 }]}>
-                {item.subtitle}
-              </Text>
-            )}
-          </View>
-          <Switch
-            value={item.value}
-            onValueChange={item.onToggle}
-            trackColor={{ false: state.theme.colors.outline, true: state.theme.colors.primary }}
-            thumbColor={item.value ? state.theme.colors.onPrimary : state.theme.colors.surface}
-          />
-        </View>
-      );
-    }
-
-    return (
-      <TouchableOpacity key={index} style={[styles.settingItem, { borderBottomColor: state.theme.colors.outline }]} onPress={item.onPress}>
-        <View style={styles.settingContent}>
-          <Text style={[styles.settingLabel, { color: state.theme.colors.onSurface }]}>
-            {item.label}
-          </Text>
-          {item.subtitle && (
-            <Text style={[styles.settingSubtitle, { color: state.theme.colors.onSurface, opacity: 0.6 }]}>
-              {item.subtitle}
-            </Text>
-          )}
-        </View>
-        <Text style={[styles.settingArrow, { color: state.theme.colors.onSurface, opacity: 0.5 }]}>
-          →
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
   const showLanguageSelection = () => {
     const languages = [
       { code: 'en', name: 'English', nativeName: 'English' },
@@ -218,6 +179,7 @@ const SettingsScreen: React.FC = () => {
       { code: 'te', name: 'Telugu', nativeName: 'తెలుగు' },
       { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം' },
       { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ' },
+      { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
     ];
 
     const buttons: Array<{
@@ -267,38 +229,226 @@ const SettingsScreen: React.FC = () => {
     }
   };
 
+  const styles = useThemedStyles((theme, rtlStyles) => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      padding: 24,
+      paddingBottom: 16,
+      backgroundColor: theme.colors.surface,
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
+      marginBottom: 16,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      textAlign: 'center',
+    },
+    content: {
+      paddingHorizontal: 16,
+      paddingBottom: 32,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 12,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
+    },
+    sectionContent: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    settingItem: {
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    settingContent: {
+      flex: 1,
+    },
+    settingLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+      marginBottom: 2,
+      color: theme.colors.onSurface,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
+    },
+    settingSubtitle: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
+    },
+    settingArrow: {
+      fontSize: 18,
+      color: theme.colors.onSurfaceVariant,
+    },
+    appInfo: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      marginTop: 8,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    appInfoTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    appInfoContent: {
+      gap: 12,
+    },
+    appInfoItem: {
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
+    },
+    appInfoLabel: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      fontWeight: '500',
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
+    },
+    appInfoValue: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      opacity: 0.7,
+      textAlign: (rtlStyles?.textAlignReverse.textAlign as 'left' | 'right') || 'right',
+    },
+  }));
+
+  const renderSettingItem = (item: any, index: number) => {
+    if (item.type === 'toggle') {
+      return (
+        <View key={index} style={[styles.settingItem, { borderBottomColor: theme.colors.outline }]}>
+          <View style={styles.settingContent}>
+            <Text style={[styles.settingLabel, { color: theme.colors.onSurface }]}>
+              {item.label}
+            </Text>
+            {item.subtitle && (
+              <Text style={[styles.settingSubtitle, { color: theme.colors.onSurface, opacity: 0.6 }]}>
+                {item.subtitle}
+              </Text>
+            )}
+          </View>
+          <Switch
+            value={item.value}
+            onValueChange={item.onToggle}
+            trackColor={{ false: theme.colors.outline, true: theme.colors.primary }}
+            thumbColor={item.value ? theme.colors.onPrimary : theme.colors.surface}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <TouchableOpacity key={index} style={[styles.settingItem, { borderBottomColor: theme.colors.outline }]} onPress={item.onPress}>
+        <View style={styles.settingContent}>
+          <Text style={[styles.settingLabel, { color: theme.colors.onSurface }]}>
+            {item.label}
+          </Text>
+          {item.subtitle && (
+            <Text style={[styles.settingSubtitle, { color: theme.colors.onSurface, opacity: 0.6 }]}>
+              {item.subtitle}
+            </Text>
+          )}
+        </View>
+        <Text style={[styles.settingArrow, { color: theme.colors.onSurface, opacity: 0.5 }]}>
+          →
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: state.theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, { backgroundColor: state.theme.colors.surface }]}>
-          <Text style={[styles.title, { color: state.theme.colors.onSurface }]}>⚙️ Settings</Text>
-          <Text style={[styles.subtitle, { color: state.theme.colors.onSurface, opacity: 0.7 }]}>Customize your experience</Text>
+        <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+          <Text style={[styles.title, { color: theme.colors.onSurface }]}>⚙️ Settings</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.onSurface, opacity: 0.7 }]}>Customize your experience</Text>
         </View>
 
         <View style={styles.content}>
           {settingsSections.map((section, sectionIndex) => (
             <View key={sectionIndex} style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: state.theme.colors.onBackground }]}>{section.title}</Text>
-              <View style={[styles.sectionContent, { backgroundColor: state.theme.colors.surface }]}>
-                {section.items.map((item, itemIndex) => renderSettingItem(item, itemIndex))}
+              <Text style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>{section.title}</Text>
+              <View style={styles.sectionContent}>
+                {section.items.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[styles.settingItem, { borderBottomColor: theme.colors.outline }]}
+                    onPress={item.onPress}
+                  >
+                    <View style={styles.settingContent}>
+                      <Text style={[styles.settingLabel, { color: theme.colors.onSurface }]}>
+                        {item.label}
+                      </Text>
+                      {item.subtitle && (
+                        <Text style={[styles.settingSubtitle, { color: theme.colors.onSurface, opacity: 0.6 }]}>
+                          {item.subtitle}
+                        </Text>
+                      )}
+                    </View>
+                    <Text style={[styles.settingArrow, { color: theme.colors.onSurface, opacity: 0.5 }]}>
+                      ›
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           ))}
 
-          <View style={[styles.appInfo, { backgroundColor: state.theme.colors.surface }]}>
-            <Text style={[styles.appInfoTitle, { color: state.theme.colors.onSurface }]}>📱 App Information</Text>
+          <View style={styles.appInfo}>
+            <Text style={styles.appInfoTitle}>App Information</Text>
             <View style={styles.appInfoContent}>
-              <View style={[styles.appInfoItem, { borderBottomColor: state.theme.colors.outline }]}>
-                <Text style={[styles.appInfoLabel, { color: state.theme.colors.onSurface }]}>Version</Text>
-                <Text style={[styles.appInfoValue, { color: state.theme.colors.onSurface, opacity: 0.7 }]}>1.0.0</Text>
-              </View>
-              <View style={[styles.appInfoItem, { borderBottomColor: state.theme.colors.outline }]}>
-                <Text style={[styles.appInfoLabel, { color: state.theme.colors.onSurface }]}>Build</Text>
-                <Text style={[styles.appInfoValue, { color: state.theme.colors.onSurface, opacity: 0.7 }]}>2024.1.1</Text>
+              <View style={styles.appInfoItem}>
+                <Text style={styles.appInfoLabel}>Version</Text>
+                <Text style={styles.appInfoValue}>1.0.0</Text>
               </View>
               <View style={styles.appInfoItem}>
-                <Text style={[styles.appInfoLabel, { color: state.theme.colors.onSurface }]}>Last Updated</Text>
-                <Text style={[styles.appInfoValue, { color: state.theme.colors.onSurface, opacity: 0.7 }]}>January 15, 2024</Text>
+                <Text style={styles.appInfoLabel}>Build</Text>
+                <Text style={styles.appInfoValue}>2024.01</Text>
               </View>
             </View>
           </View>
@@ -307,122 +457,5 @@ const SettingsScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAFAFA', // fallback color
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    padding: 24,
-    paddingBottom: 16,
-    backgroundColor: '#FFFFFF', // fallback color
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1C1C1C', // fallback color
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#1C1C1C', // fallback color
-    opacity: 0.7,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1C', // fallback color
-    marginBottom: 12,
-  },
-  sectionContent: {
-    backgroundColor: '#FFFFFF', // fallback color
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#BDBDBD', // fallback color
-  },
-  settingContent: {
-    flex: 1,
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  settingSubtitle: {
-    fontSize: 14,
-  },
-  settingArrow: {
-    fontSize: 18,
-  },
-  appInfo: {
-    backgroundColor: '#FFFFFF', // fallback color
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  appInfoTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1C', // fallback color
-    marginBottom: 16,
-  },
-  appInfoContent: {
-    gap: 12,
-  },
-  appInfoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#BDBDBD', // fallback color
-  },
-  appInfoLabel: {
-    fontSize: 16,
-    color: '#1C1C1C', // fallback color
-    fontWeight: '500',
-  },
-  appInfoValue: {
-    fontSize: 16,
-    color: '#1C1C1C', // fallback color
-    opacity: 0.7,
-  },
-});
 
 export default SettingsScreen;

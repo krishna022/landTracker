@@ -18,6 +18,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../store/ThemeContext';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ValidationUtils } from '../../utils/validation';
+import { useTranslation } from '../../utils/translations';
 
 const { width, height } = Dimensions.get('window');
 
@@ -52,6 +53,7 @@ const RegisterScreen: React.FC = () => {
   const navigation = useNavigation();
   const { state: themeState } = useTheme();
   const theme = themeState.theme;
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -59,16 +61,16 @@ const RegisterScreen: React.FC = () => {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   
   const countries: Country[] = [
-    { name: 'India', code: '+91', flag: '🇮🇳' },
-    { name: 'Indonesia', code: '+62', flag: '🇮🇩' },
-    { name: 'Bangladesh', code: '+880', flag: '🇧🇩' },
-    { name: 'China', code: '+86', flag: '🇨🇳' },
-    { name: 'Bahrain', code: '+973', flag: '🇧🇭' },
-    { name: 'Malaysia', code: '+60', flag: '🇲🇾' },
-    { name: 'Australia', code: '+61', flag: '🇦🇺' },
-    { name: 'Singapore', code: '+65', flag: '🇸🇬' },
-    { name: 'United States', code: '+1', flag: '🇺🇸' },
-    { name: 'United Kingdom', code: '+44', flag: '🇬🇧' },
+    { name: t('india'), code: '+91', flag: '🇮🇳' },
+    { name: t('indonesia'), code: '+62', flag: '🇮🇩' },
+    { name: t('bangladesh'), code: '+880', flag: '🇧🇩' },
+    { name: t('china'), code: '+86', flag: '🇨🇳' },
+    { name: t('bahrain'), code: '+973', flag: '🇧🇭' },
+    { name: t('malaysia'), code: '+60', flag: '🇲🇾' },
+    { name: t('australia'), code: '+61', flag: '🇦🇺' },
+    { name: t('singapore'), code: '+65', flag: '🇸🇬' },
+    { name: t('unitedStates'), code: '+1', flag: '🇺🇸' },
+    { name: t('unitedKingdom'), code: '+44', flag: '🇬🇧' },
   ];
   
   const [formData, setFormData] = useState<FormData>({
@@ -102,7 +104,7 @@ const RegisterScreen: React.FC = () => {
       if (firstError) {
         Toast.show({
           type: 'error',
-          text1: 'Validation Error',
+          text1: t('validationError'),
           text2: firstError,
           position: 'bottom'
         });
@@ -139,8 +141,8 @@ const RegisterScreen: React.FC = () => {
       // Registration successful, navigate to email verification
       Toast.show({
         type: 'success',
-        text1: 'Registration Successful',
-        text2: 'Please check your email for verification code.',
+        text1: t('registrationSuccessful'),
+        text2: t('checkEmailForVerification'),
         position: 'bottom'
       });
 
@@ -151,8 +153,8 @@ const RegisterScreen: React.FC = () => {
     } catch (error: any) {
       Toast.show({
         type: 'error',
-        text1: 'Registration Failed',
-        text2: error.message || 'Please check your information and try again.',
+        text1: t('registrationFailed'),
+        text2: error.message || t('checkInformationAndTryAgain'),
         position: 'bottom'
       });
     } finally {
@@ -171,8 +173,8 @@ const RegisterScreen: React.FC = () => {
       if (!formData.firstName.trim() || !formData.lastName.trim()) {
         Toast.show({
           type: 'error',
-          text1: 'Required Fields',
-          text2: 'Please fill in your name fields',
+          text1: t('requiredFields'),
+          text2: t('fillNameFields'),
           position: 'bottom'
         });
         return;
@@ -188,28 +190,28 @@ const RegisterScreen: React.FC = () => {
   const renderStepIndicator = () => (
     <View style={styles.stepIndicator}>
       <View style={[styles.stepDot, currentStep >= 1 && styles.stepDotActive]}>
-        <Text style={[styles.stepNumber, currentStep >= 1 && styles.stepNumberActive]}>1</Text>
+        <Text style={[styles.stepNumber, currentStep >= 1 && styles.stepNumberActive]}>{t('step1')}</Text>
       </View>
       <View style={[styles.stepLine, currentStep >= 2 && styles.stepLineActive]} />
       <View style={[styles.stepDot, currentStep >= 2 && styles.stepDotActive]}>
-        <Text style={[styles.stepNumber, currentStep >= 2 && styles.stepNumberActive]}>2</Text>
+        <Text style={[styles.stepNumber, currentStep >= 2 && styles.stepNumberActive]}>{t('step2')}</Text>
       </View>
     </View>
   );
 
   const renderStep1 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Personal Information</Text>
-      <Text style={styles.stepSubtitle}>Let's start with your basic details</Text>
+      <Text style={styles.stepTitle}>{t('personalInformation')}</Text>
+      <Text style={styles.stepSubtitle}>{t('letsStartWithBasicDetails')}</Text>
 
       {/* <View style={styles.inputRow}> */}
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>First Name *</Text>
+          <Text style={styles.inputLabel}>{t('firstName')} *</Text>
           <View style={[styles.inputWrapper, focusedField === 'firstName' && styles.inputFocused, errors.firstName && styles.inputError]}>
             <Text style={styles.inputIcon}>👤</Text>
             <TextInput
               style={styles.input}
-              placeholder="John"
+              placeholder={t('firstNamePlaceholder')}
               placeholderTextColor={theme.colors.outline}
               value={formData.firstName}
               onChangeText={(value) => handleInputChange('firstName', value)}
@@ -222,12 +224,12 @@ const RegisterScreen: React.FC = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Last Name *</Text>
+          <Text style={styles.inputLabel}>{t('lastName')} *</Text>
           <View style={[styles.inputWrapper, focusedField === 'lastName' && styles.inputFocused, errors.lastName && styles.inputError]}>
             <Text style={styles.inputIcon}>👤</Text>
             <TextInput
               style={styles.input}
-              placeholder="Doe"
+              placeholder={t('lastNamePlaceholder')}
               placeholderTextColor={theme.colors.outline}
               value={formData.lastName}
               onChangeText={(value) => handleInputChange('lastName', value)}
@@ -241,7 +243,7 @@ const RegisterScreen: React.FC = () => {
       {/* </View> */}
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Phone Number *</Text>
+        <Text style={styles.inputLabel}>{t('phoneNumber')} *</Text>
         <View style={styles.phoneInputContainer}>
           {/* Country Code Selector */}
           <TouchableOpacity 
@@ -259,7 +261,7 @@ const RegisterScreen: React.FC = () => {
           <View style={[styles.phoneNumberWrapper, focusedField === 'phone' && styles.inputFocused, errors.phone && styles.inputError]}>
             <TextInput
               style={styles.phoneNumberInput}
-              placeholder="12345 67890"
+              placeholder={t('phoneNumberPlaceholder')}
               placeholderTextColor={theme.colors.outline}
               value={formData.phone}
               onChangeText={(value) => handleInputChange('phone', value)}
@@ -274,7 +276,7 @@ const RegisterScreen: React.FC = () => {
       </View>
 
       <TouchableOpacity style={styles.nextButton} onPress={nextStep}>
-        <Text style={styles.nextButtonText}>Next Step</Text>
+        <Text style={styles.nextButtonText}>{t('nextStep')}</Text>
         <Text style={styles.buttonArrow}>→</Text>
       </TouchableOpacity>
     </View>
@@ -282,16 +284,16 @@ const RegisterScreen: React.FC = () => {
 
   const renderStep2 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Account Security</Text>
-      <Text style={styles.stepSubtitle}>Set up your login credentials</Text>
+      <Text style={styles.stepTitle}>{t('accountSecurity')}</Text>
+      <Text style={styles.stepSubtitle}>{t('setupLoginCredentials')}</Text>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Email Address *</Text>
+        <Text style={styles.inputLabel}>{t('emailAddressRequired')}</Text>
         <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputFocused, errors.email && styles.inputError]}>
           <Text style={styles.inputIcon}>📧</Text>
           <TextInput
             style={styles.input}
-            placeholder="john.doe@example.com"
+            placeholder={t('emailPlaceholder')}
             placeholderTextColor={theme.colors.outline}
             value={formData.email}
             onChangeText={(value) => handleInputChange('email', value)}
@@ -305,12 +307,12 @@ const RegisterScreen: React.FC = () => {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Password *</Text>
+        <Text style={styles.inputLabel}>{t('passwordRequired')}</Text>
         <View style={[styles.inputWrapper, focusedField === 'password' && styles.inputFocused, errors.password && styles.inputError]}>
           <Text style={styles.inputIcon}>🔐</Text>
           <TextInput
             style={styles.input}
-            placeholder="Create a strong password"
+            placeholder={t('createStrongPassword')}
             placeholderTextColor={theme.colors.outline}
             value={formData.password}
             onChangeText={(value) => handleInputChange('password', value)}
@@ -329,12 +331,12 @@ const RegisterScreen: React.FC = () => {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Confirm Password *</Text>
+        <Text style={styles.inputLabel}>{t('confirmPasswordRequired')}</Text>
         <View style={[styles.inputWrapper, focusedField === 'confirmPassword' && styles.inputFocused, errors.confirmPassword && styles.inputError]}>
           <Text style={styles.inputIcon}>🔒</Text>
           <TextInput
             style={styles.input}
-            placeholder="Confirm your password"
+            placeholder={t('confirmPasswordPlaceholder')}
             placeholderTextColor={theme.colors.outline}
             value={formData.confirmPassword}
             onChangeText={(value) => handleInputChange('confirmPassword', value)}
@@ -354,7 +356,7 @@ const RegisterScreen: React.FC = () => {
 
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.backButton} onPress={prevStep}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={styles.backButtonText}>{t('backArrow')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -363,17 +365,18 @@ const RegisterScreen: React.FC = () => {
           disabled={loading}
         >
           <Text style={styles.registerButtonText}>
-            {loading ? 'Creating...' : 'Create Account'}
+            {loading ? t('creating') : t('createAccount')}
           </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  const styles = useThemedStyles((theme) => StyleSheet.create({
+  const styles = useThemedStyles((theme, rtlStyles) => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     keyboardView: {
       flex: 1,
@@ -425,7 +428,7 @@ const RegisterScreen: React.FC = () => {
       marginBottom: 24,
     },
     stepIndicator: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 24,
@@ -476,7 +479,7 @@ const RegisterScreen: React.FC = () => {
       marginBottom: 24,
     },
     inputRow: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       marginBottom: 20,
     },
     inputContainer: {
@@ -487,10 +490,12 @@ const RegisterScreen: React.FC = () => {
       fontWeight: '600',
       color: theme.colors.onBackground,
       marginBottom: 8,
-      marginLeft: 4,
+      marginLeft: rtlStyles?.marginStart.marginLeft || 4,
+      marginRight: rtlStyles?.marginStart.marginRight || 0,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     inputWrapper: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       borderWidth: 2,
       borderColor: theme.colors.outline,
@@ -517,13 +522,15 @@ const RegisterScreen: React.FC = () => {
     },
     inputIcon: {
       fontSize: 18,
-      marginRight: 12,
+      marginRight: rtlStyles?.marginEnd.marginRight || 12,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     input: {
       flex: 1,
       fontSize: 16,
       color: theme.colors.onSurface,
       paddingVertical: 12,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     eyeButton: {
       padding: 8,
@@ -535,13 +542,15 @@ const RegisterScreen: React.FC = () => {
       color: theme.colors.error,
       fontSize: 12,
       marginTop: 4,
-      marginLeft: 4,
+      marginLeft: rtlStyles?.marginStart.marginLeft || 4,
+      marginRight: rtlStyles?.marginStart.marginRight || 0,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     nextButton: {
       backgroundColor: theme.colors.primary,
       borderRadius: 16,
       paddingVertical: 16,
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       shadowColor: theme.colors.primary,
@@ -555,7 +564,8 @@ const RegisterScreen: React.FC = () => {
       color: theme.colors.onPrimary,
       fontSize: 16,
       fontWeight: 'bold',
-      marginRight: 8,
+      marginRight: rtlStyles?.marginEnd.marginRight || 8,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     buttonArrow: {
       color: theme.colors.onPrimary,
@@ -563,7 +573,7 @@ const RegisterScreen: React.FC = () => {
       fontWeight: 'bold',
     },
     buttonRow: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       gap: 12,
       marginTop: 8,
     },
@@ -603,7 +613,7 @@ const RegisterScreen: React.FC = () => {
       fontWeight: 'bold',
     },
     footer: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 'auto',
@@ -621,11 +631,11 @@ const RegisterScreen: React.FC = () => {
     },
     // Phone input styles
     phoneInputContainer: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       gap: 8,
     },
     countryCodeButton: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       borderWidth: 2,
       borderColor: theme.colors.outline,
@@ -642,13 +652,15 @@ const RegisterScreen: React.FC = () => {
     },
     countryFlag: {
       fontSize: 20,
-      marginRight: 8,
+      marginRight: rtlStyles?.marginEnd.marginRight || 8,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     countryCodeText: {
       fontSize: 16,
       color: theme.colors.onSurface,
       fontWeight: '500',
       flex: 1,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     dropdownArrow: {
       fontSize: 12,
@@ -657,7 +669,7 @@ const RegisterScreen: React.FC = () => {
     },
     phoneNumberWrapper: {
       flex: 1,
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       borderWidth: 2,
       borderColor: theme.colors.outline,
@@ -676,6 +688,7 @@ const RegisterScreen: React.FC = () => {
       fontSize: 16,
       color: theme.colors.onSurface,
       paddingVertical: 12,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     // Modal styles
     modalOverlay: {
@@ -696,7 +709,7 @@ const RegisterScreen: React.FC = () => {
       elevation: 8,
     },
     modalHeader: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 20,
@@ -707,6 +720,7 @@ const RegisterScreen: React.FC = () => {
       fontSize: 18,
       fontWeight: 'bold',
       color: theme.colors.onSurface,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     modalCloseButton: {
       width: 32,
@@ -725,7 +739,7 @@ const RegisterScreen: React.FC = () => {
       maxHeight: height * 0.5,
     },
     countryItem: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       padding: 16,
       borderBottomWidth: 1,
@@ -733,19 +747,22 @@ const RegisterScreen: React.FC = () => {
     },
     countryItemFlag: {
       fontSize: 24,
-      marginRight: 16,
+      marginRight: rtlStyles?.marginEnd.marginRight || 16,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     countryItemName: {
       flex: 1,
       fontSize: 16,
       color: theme.colors.onSurface,
       fontWeight: '500',
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     countryItemCode: {
       fontSize: 16,
       color: theme.colors.onSurface,
       opacity: 0.7,
       fontWeight: '500',
+      textAlign: (rtlStyles?.textAlignReverse.textAlign as 'left' | 'right') || 'right',
     },
   }));
 
@@ -766,8 +783,8 @@ const RegisterScreen: React.FC = () => {
                 <Text style={styles.logoText}>🏞️</Text>
               </View>
             </View>
-            <Text style={styles.title}>Join Land Tracker</Text>
-            <Text style={styles.subtitle}>Create your account to get started</Text>
+            <Text style={styles.title}>{t('joinLandTracker')}</Text>
+            <Text style={styles.subtitle}>{t('createAccountToGetStarted')}</Text>
             
             {renderStepIndicator()}
           </View>
@@ -775,9 +792,9 @@ const RegisterScreen: React.FC = () => {
           {currentStep === 1 ? renderStep1() : renderStep2()}
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>{t('alreadyHaveAccount')} </Text>
             <TouchableOpacity onPress={handleLogin} activeOpacity={0.7}>
-              <Text style={styles.link}>Sign In</Text>
+              <Text style={styles.link}>{t('signIn')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -793,7 +810,7 @@ const RegisterScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Country</Text>
+              <Text style={styles.modalTitle}>{t('selectCountry')}</Text>
               <TouchableOpacity 
                 style={styles.modalCloseButton}
                 onPress={() => setShowCountryPicker(false)}

@@ -284,10 +284,11 @@ const PermissionScreen: React.FC = () => {
   const allGranted = permissions.every(perm => perm.granted);
   const someGranted = permissions.some(perm => perm.granted);
 
-  const styles = useThemedStyles((theme) => StyleSheet.create({
+  const styles = useThemedStyles((theme, rtlStyles) => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     scrollView: {
       flex: 1,
@@ -332,28 +333,32 @@ const PermissionScreen: React.FC = () => {
       borderColor: theme.colors.outline,
     },
     permissionHeader: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'flex-start',
     },
     permissionIcon: {
       fontSize: 32,
-      marginRight: 16,
+      marginRight: rtlStyles?.marginEnd.marginRight || 16,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
       marginTop: 2,
     },
     permissionInfo: {
       flex: 1,
-      marginRight: 16,
+      marginRight: rtlStyles?.marginEnd.marginRight || 16,
+      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
     },
     permissionTitle: {
       fontSize: 18,
       fontWeight: '600',
       color: theme.colors.onSurface,
       marginBottom: 8,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     permissionDescription: {
       fontSize: 14,
       color: theme.colors.onSurfaceVariant,
       lineHeight: 20,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     permissionButton: {
       backgroundColor: theme.colors.primary,

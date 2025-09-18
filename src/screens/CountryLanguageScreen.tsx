@@ -41,6 +41,7 @@ const languages: Language[] = [
   { code: 'te', name: 'Telugu', nativeName: 'తెలుగు' },
   { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം' },
   { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ' },
+  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
 ];
 
 const CountryLanguageScreen: React.FC = () => {
@@ -62,10 +63,11 @@ const CountryLanguageScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
-  const styles = useThemedStyles((theme: any) => StyleSheet.create({
+  const styles = useThemedStyles((theme: any, rtlStyles) => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     content: {
       flex: 1,
@@ -98,6 +100,7 @@ const CountryLanguageScreen: React.FC = () => {
       fontWeight: '600',
       color: theme.colors.onSurface,
       marginBottom: 16,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     countrySelector: {
       backgroundColor: theme.colors.surface,
@@ -109,10 +112,12 @@ const CountryLanguageScreen: React.FC = () => {
     countryText: {
       fontSize: 16,
       color: theme.colors.onSurface,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     placeholderText: {
       fontSize: 16,
       color: theme.colors.onSurfaceVariant,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     languageSelector: {
       backgroundColor: theme.colors.surface,
@@ -124,6 +129,7 @@ const CountryLanguageScreen: React.FC = () => {
     languageText: {
       fontSize: 16,
       color: theme.colors.onSurface,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     languageItem: {
       padding: 16,
@@ -137,11 +143,13 @@ const CountryLanguageScreen: React.FC = () => {
       fontSize: 16,
       color: theme.colors.onSurface,
       fontWeight: '500',
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     languageNative: {
       fontSize: 14,
       color: theme.colors.onSurfaceVariant,
       marginTop: 2,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     selectedLanguage: {
       backgroundColor: theme.colors.primaryContainer,
@@ -197,9 +205,10 @@ const CountryLanguageScreen: React.FC = () => {
     modalContainer: {
       flex: 1,
       backgroundColor: theme.colors.background,
+      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     modalHeader: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: 20,
@@ -210,6 +219,7 @@ const CountryLanguageScreen: React.FC = () => {
       fontSize: 20,
       fontWeight: '600',
       color: theme.colors.onSurface,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     closeButton: {
       padding: 8,
@@ -228,6 +238,7 @@ const CountryLanguageScreen: React.FC = () => {
       borderColor: theme.colors.outline,
       fontSize: 16,
       color: theme.colors.onSurface,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     countryItem: {
       padding: 16,
@@ -237,6 +248,7 @@ const CountryLanguageScreen: React.FC = () => {
     countryItemText: {
       fontSize: 16,
       color: theme.colors.onSurface,
+      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     loadingContainer: {
       flex: 1,
