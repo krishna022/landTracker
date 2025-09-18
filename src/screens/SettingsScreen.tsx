@@ -10,9 +10,13 @@ import {
   Alert,
 } from 'react-native';
 import { useTheme } from '../store/ThemeContext';
+import { useTranslation } from '../utils/translations';
+import { usePreferences } from '../store/PreferencesContext';
 
 const SettingsScreen: React.FC = () => {
   const { state, setThemeMode, toggleTheme } = useTheme();
+  const { t } = useTranslation();
+  const { preferences, setLanguage } = usePreferences();
   const [notifications, setNotifications] = useState(true);
   const [locationServices, setLocationServices] = useState(true);
   const [biometricAuth, setBiometricAuth] = useState(false);
@@ -55,9 +59,9 @@ const SettingsScreen: React.FC = () => {
           type: 'action',
         },
         {
-          label: 'Language',
-          subtitle: 'English (US)',
-          onPress: () => Alert.alert('Language', 'Select your preferred language'),
+          label: t('language'),
+          subtitle: preferences.language.nativeName,
+          onPress: () => showLanguageSelection(),
           type: 'action',
         },
       ],
@@ -204,6 +208,63 @@ const SettingsScreen: React.FC = () => {
         </Text>
       </TouchableOpacity>
     );
+  };
+
+  const showLanguageSelection = () => {
+    const languages = [
+      { code: 'en', name: 'English', nativeName: 'English' },
+      { code: 'hi', name: 'Hindi', nativeName: 'हिंदी' },
+      { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்' },
+      { code: 'te', name: 'Telugu', nativeName: 'తెలుగు' },
+      { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം' },
+      { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ' },
+    ];
+
+    const buttons: Array<{
+      text: string;
+      onPress: () => void;
+      style?: 'default' | 'destructive' | 'cancel';
+    }> = languages.map(language => ({
+      text: language.nativeName,
+      onPress: () => handleLanguageChange(language),
+      style: language.code === preferences.language.code ? 'destructive' : 'default'
+    }));
+
+    buttons.push({
+      text: t('cancel'),
+      style: 'cancel',
+      onPress: () => {} // Empty function for cancel button
+    });
+
+    Alert.alert(
+      t('selectLanguage'),
+      t('chooseCountry'),
+      buttons
+    );
+  };
+
+  const handleLanguageChange = async (language: { code: string; name: string; nativeName: string }) => {
+    try {
+      console.log('Changing language to:', language);
+      await setLanguage(language);
+
+      Alert.alert(
+        t('success'),
+        `Language changed to ${language.nativeName}. The app will now use this language.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Force a re-render by updating a state that triggers re-render
+              // This will cause all components using useTranslation to re-render
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error changing language:', error);
+      Alert.alert(t('error'), 'Failed to change language. Please try again.');
+    }
   };
 
   return (

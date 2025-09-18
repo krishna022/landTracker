@@ -5,8 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from 'react-native';
 
 import { useAuth } from '../store/AuthContext';
+import { usePreferences } from '../store/PreferencesContext';
 import LoadingScreen from '../screens/LoadingScreen';
 import PermissionScreen from '../screens/PermissionScreen';
+import CountryLanguageScreen from '../screens/CountryLanguageScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import EmailVerificationScreen from '../screens/auth/EmailVerificationScreen';
@@ -164,6 +166,7 @@ const MainTabs = () => (
 // AppNavigator.tsx - Updated component
 const AppNavigator = () => {
   const { state } = useAuth();
+  const { preferences } = usePreferences();
   const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
   const [requiresPinAuth, setRequiresPinAuth] = useState<boolean>(false);
   const [permissionsCompleted, setPermissionsCompleted] = useState<boolean>(false);
@@ -200,8 +203,8 @@ const AppNavigator = () => {
     }
   };
 
-  // Show loading while checking session
-  if (state.isLoading || isCheckingSession) {
+  // Show loading while checking session or preferences
+  if (state.isLoading || isCheckingSession || !preferences.isInitialized) {
     return <LoadingScreen />;
   }
 
@@ -227,6 +230,9 @@ const AppNavigator = () => {
       ) : requiresPinAuth ? (
         // Case 2: User needs to enter PIN (app reopened)
         <Stack.Screen name="PinAuth" component={PinAuthScreen} />
+      ) : !preferences.country ? (
+        // User hasn't set preferences yet, show country/language selection
+        <Stack.Screen name="CountryLanguage" component={CountryLanguageScreen} />
       ) : (
         // No session, show auth flow
         <Stack.Screen name="Auth">

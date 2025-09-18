@@ -9,11 +9,13 @@ import {
   Alert,
   Platform,
   Dimensions,
+  Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from '../utils/translations';
 import { useTheme } from '../store/ThemeContext';
 import { useThemedStyles } from '../hooks/useThemedStyles';
 
@@ -34,19 +36,21 @@ const PermissionScreen: React.FC = () => {
   const theme = themeState.theme;
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [grantedPermissions, setGrantedPermissions] = useState<string[]>([]);
+  const { t } = useTranslation();
 
   const permissionList: Omit<PermissionItem, 'granted'>[] = [
     {
       id: 'camera',
-      title: 'Camera Access',
-      description: 'Required to capture photos of your properties and documents for verification purposes.',
+      title: t('cameraAccess'),
+      description: t('cameraDescription'),
       permission: Platform.OS === 'ios' ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA,
       icon: '📷',
     },
     {
       id: 'gallery',
-      title: 'Photo Gallery',
-      description: 'Needed to select and upload property images from your device gallery.',
+      title: t('photoGallery'),
+      description: t('galleryDescription'),
       permission: Platform.OS === 'ios'
         ? PERMISSIONS.IOS.PHOTO_LIBRARY
         : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
@@ -54,8 +58,8 @@ const PermissionScreen: React.FC = () => {
     },
     {
       id: 'location',
-      title: 'Location Access',
-      description: 'Allows us to show nearby properties and provide location-based property recommendations.',
+      title: t('locationAccess'),
+      description: t('locationDescription'),
       permission: Platform.OS === 'ios'
         ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
         : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -63,8 +67,8 @@ const PermissionScreen: React.FC = () => {
     },
     {
       id: 'storage',
-      title: 'Storage Access',
-      description: 'Required to save property documents and images locally on your device.',
+      title: t('storageAccess'),
+      description: t('storageDescription'),
       permission: Platform.OS === 'ios'
         ? PERMISSIONS.IOS.PHOTO_LIBRARY
         : PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
@@ -84,110 +88,189 @@ const PermissionScreen: React.FC = () => {
     setPermissions(initialPermissions);
   };
 
-  const requestPermission = async (permissionItem: PermissionItem) => {
+  const requestPermission = async (permission: any, permissionName: string) => {
     try {
-      setLoading(true);
-      const result = await request(permissionItem.permission);
+      console.log(`Requesting ${permissionName} permission...`);
+      const result = await request(permission);
+      console.log(`${permissionName} permission result:`, result);
 
-      const updatedPermissions = permissions.map(perm =>
-        perm.id === permissionItem.id
-          ? { ...perm, granted: result === RESULTS.GRANTED }
-          : perm
-      );
-
-      setPermissions(updatedPermissions);
-
-      if (result === RESULTS.DENIED) {
-        Alert.alert(
-          'Permission Required',
-          `${permissionItem.title} is required for the app to function properly. You can grant it later in app settings.`,
-          [{ text: 'OK' }]
-        );
+      if (result === RESULTS.GRANTED) {
+        console.log(`${permissionName} permission granted`);
+        setGrantedPermissions(prev => [...prev, permissionName]);
+        return true;
       } else if (result === RESULTS.BLOCKED) {
+        console.log(`${permissionName} permission blocked`);
         Alert.alert(
-          'Permission Blocked',
-          `Please go to your device settings and enable ${permissionItem.title.toLowerCase()} for this app.`,
+          t('permissionBlocked'),
+          t('permissionBlockedMessage'),
           [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Open Settings',
-              onPress: () => {
-                // Note: You might want to use a library like react-native-open-settings
-                // to open the app settings directly
-              }
-            }
+            { text: t('openSettings'), onPress: () => Linking.openSettings() },
+            { text: t('continue'), style: 'default' }
           ]
         );
+        return false;
+      } else {
+        console.log(`${permissionName} permission denied`);
+        return false;
       }
     } catch (error) {
-      console.error('Permission request error:', error);
-      Alert.alert('Error', 'Failed to request permission. Please try again.');
-    } finally {
-      setLoading(false);
+      console.error(`Error requesting ${permissionName} permission:`, error);
+      return false;
     }
   };
 
   const requestAllPermissions = async () => {
+    console.log('Starting bulk permission request...');
     setLoading(true);
+
+    // Add a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      console.log('Permission request timeout - forcing loading to false');
+      setLoading(false);
+      Alert.alert(
+        t('requestTimeout'),
+        t('requestTimeoutMessage'),
+        [
+          { text: t('tryAgain'), onPress: () => requestAllPermissions() },
+          { text: t('skip'), onPress: skipPermissions, style: 'destructive' }
+        ]
+      );
+    }, 30000); // 30 second timeout
+
     try {
-      const results = await Promise.all(
-        permissions.map(async (perm) => {
+      // Request permissions one by one instead of Promise.all to better handle errors
+      const updatedPermissions = [...permissions];
+
+      for (let i = 0; i < permissions.length; i++) {
+        const perm = permissions[i];
+        console.log(`Requesting permission for: ${perm.title}`);
+
+        try {
           const result = await request(perm.permission);
-          return {
+          console.log(`Permission result for ${perm.title}:`, result);
+
+          updatedPermissions[i] = {
             ...perm,
             granted: result === RESULTS.GRANTED,
           };
-        })
-      );
+        } catch (error) {
+          console.error(`Error requesting permission for ${perm.title}:`, error);
+          // Continue with other permissions even if one fails
+          updatedPermissions[i] = {
+            ...perm,
+            granted: false,
+          };
+        }
+      }
 
-      setPermissions(results);
+      // Clear the timeout since we completed successfully
+      clearTimeout(timeout);
+
+      console.log('All permissions processed:', updatedPermissions);
+      setPermissions(updatedPermissions);
 
       // Check if all permissions are granted
-      const allGranted = results.every(perm => perm.granted);
+      const allGranted = updatedPermissions.every(perm => perm.granted);
+      console.log('All permissions granted:', allGranted);
 
       if (allGranted) {
+        console.log('All permissions granted, marking as completed and navigating...');
         await markPermissionsCompleted();
         navigation.navigate('Login' as never);
       } else {
+        const grantedCount = updatedPermissions.filter(perm => perm.granted).length;
+        console.log(`${grantedCount}/${updatedPermissions.length} permissions granted`);
+
         Alert.alert(
-          'Permissions Incomplete',
-          'Some permissions are still required for the best experience. You can grant them later or try again.',
+          t('permissionsIncomplete'),
+          `${grantedCount} ${t('permissionsIncompleteMessage')}`,
           [
-            { text: 'Try Again', style: 'default' },
             {
-              text: 'Continue',
+              text: t('tryAgain'),
+              onPress: () => requestAllPermissions(),
+              style: 'default'
+            },
+            {
+              text: t('continueAnyway'),
               onPress: async () => {
+                console.log('User chose to continue anyway...');
                 await markPermissionsCompleted();
                 navigation.navigate('Login' as never);
-              }
+              },
+              style: 'default'
             }
           ]
         );
       }
     } catch (error) {
+      // Clear the timeout on error
+      clearTimeout(timeout);
       console.error('Bulk permission request error:', error);
-      Alert.alert('Error', 'Failed to request permissions. Please try again.');
+      Alert.alert(
+        t('error'),
+        'Failed to request permissions. Please try again.',
+        [
+          { text: t('tryAgain'), onPress: () => requestAllPermissions() },
+          { text: t('skip'), onPress: skipPermissions, style: 'destructive' }
+        ]
+      );
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
 
   const markPermissionsCompleted = async () => {
     try {
+      console.log('Marking permissions as completed...');
       await AsyncStorage.setItem('permissions_completed', 'true');
+      console.log('Permissions marked as completed successfully');
     } catch (error) {
       console.error('Error saving permissions status:', error);
     }
   };
 
+  // Force reset loading state if it gets stuck
+  const resetLoadingState = () => {
+    console.log('Force resetting loading state');
+    setLoading(false);
+  };
+
+  // Add a useEffect to monitor loading state and reset if needed
+  useEffect(() => {
+    let timeoutId: number;
+
+    if (loading) {
+      // If loading is true for more than 45 seconds, reset it
+      timeoutId = setTimeout(() => {
+        console.log('Loading state stuck for too long, resetting...');
+        resetLoadingState();
+        Alert.alert(
+          t('requestStuck'),
+          t('requestStuckMessage'),
+          [
+            { text: t('tryAgain'), onPress: () => requestAllPermissions() },
+            { text: t('skip'), onPress: skipPermissions, style: 'destructive' }
+          ]
+        );
+      }, 45000);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [loading]);
+
   const skipPermissions = async () => {
     Alert.alert(
-      'Skip Permissions',
-      'Some features may not work properly without these permissions. You can grant them later in the app settings.',
+      t('skipPermissions'),
+      t('skipPermissionsMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Skip',
+          text: t('skip'),
           style: 'destructive',
           onPress: async () => {
             await markPermissionsCompleted();
@@ -350,9 +433,9 @@ const PermissionScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome to Land Tracker</Text>
+          <Text style={styles.title}>{t('welcomeToLandTracker')}</Text>
           <Text style={styles.subtitle}>
-            To provide you with the best experience, we need access to a few permissions
+            {t('permissionSubtitle')}
           </Text>
         </View>
 
@@ -373,14 +456,14 @@ const PermissionScreen: React.FC = () => {
                     permission.granted && styles.permissionGranted,
                     loading && styles.permissionDisabled,
                   ]}
-                  onPress={() => requestPermission(permission)}
+                  onPress={() => requestPermission(permission.permission, permission.title)}
                   disabled={loading || permission.granted}
                 >
                   <Text style={[
                     styles.permissionButtonText,
                     permission.granted && styles.permissionGrantedText,
                   ]}>
-                    {permission.granted ? 'Granted' : 'Grant'}
+                    {permission.granted ? t('granted') : t('grant')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -398,7 +481,7 @@ const PermissionScreen: React.FC = () => {
             disabled={loading}
           >
             <Text style={styles.primaryButtonText}>
-              {loading ? 'Requesting...' : 'Grant All Permissions'}
+              {loading ? t('requesting') : t('grantAllPermissions')}
             </Text>
           </TouchableOpacity>
 
@@ -410,13 +493,13 @@ const PermissionScreen: React.FC = () => {
             onPress={skipPermissions}
             disabled={loading}
           >
-            <Text style={styles.secondaryButtonText}>Skip for Now</Text>
+            <Text style={styles.secondaryButtonText}>{t('skipForNow')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            You can change these permissions anytime in your device settings
+            {t('permissionFooter')}
           </Text>
         </View>
       </ScrollView>

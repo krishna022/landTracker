@@ -11,10 +11,12 @@ import { setupNetworkMonitor } from './src/utils/flipperNetworkSetup';
 
 import { AuthProvider } from './src/store/AuthContext';
 import { ThemeProvider, useTheme } from './src/store/ThemeContext';
+import { PreferencesProvider, usePreferences } from './src/store/PreferencesContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 function AppContent() {
   const { state } = useTheme();
+  const { preferences } = usePreferences();
 
   const paperTheme = state.isDark ? PaperDarkTheme : PaperDefaultTheme;
   const navigationTheme = state.isDark ? NavigationDarkTheme : NavigationDefaultTheme;
@@ -23,9 +25,9 @@ function AppContent() {
     <SafeAreaProvider>
       <PaperProvider theme={paperTheme}>
         <AuthProvider>
-          <NavigationContainer theme={navigationTheme}>
+          <NavigationContainer theme={navigationTheme} key={preferences.language.code}>
             <StatusBar barStyle={state.isDark ? 'light-content' : 'dark-content'} />
-            <AppNavigator />
+            <AppNavigator key={`nav-${preferences.language.code}`} />
             <Toast />
           </NavigationContainer>
         </AuthProvider>
@@ -42,7 +44,9 @@ function App() {
 
   return (
     <ThemeProvider>
-      <AppContent />
+      <PreferencesProvider>
+        <AppContent />
+      </PreferencesProvider>
     </ThemeProvider>
   );
 }
