@@ -12,72 +12,43 @@ import { setupNetworkMonitor } from './src/utils/flipperNetworkSetup';
 import { AuthProvider } from './src/store/AuthContext';
 import { ThemeProvider, useTheme } from './src/store/ThemeContext';
 import { PreferencesProvider, usePreferences } from './src/store/PreferencesContext';
+import { RTLProvider } from './src/store/RTLContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 function AppContent() {
-  console.log('AppContent rendering...');
+  const { state } = useTheme();
+  const { preferences } = usePreferences();
 
-  try {
-    const { state } = useTheme();
-    const { preferences } = usePreferences();
+  const paperTheme = state.isDark ? PaperDarkTheme : PaperDefaultTheme;
+  const navigationTheme = state.isDark ? NavigationDarkTheme : NavigationDefaultTheme;
 
-    console.log('Theme state:', state);
-    console.log('Preferences:', preferences);
-
-    const paperTheme = state.isDark ? PaperDarkTheme : PaperDefaultTheme;
-    const navigationTheme = state.isDark ? NavigationDarkTheme : NavigationDefaultTheme;
-
-    return (
-      <SafeAreaProvider>
-        <PaperProvider theme={paperTheme}>
-          <AuthProvider>
-            <NavigationContainer
-              theme={navigationTheme}
-              key={preferences.language.code}
-              onReady={() => console.log('Navigation container ready')}
-              onStateChange={(state) => console.log('Navigation state changed:', state)}
-            >
-              <StatusBar barStyle={state.isDark ? 'light-content' : 'dark-content'} />
-              <AppNavigator key={`nav-${preferences.language.code}`} />
-              <Toast />
-            </NavigationContainer>
-          </AuthProvider>
-        </PaperProvider>
-      </SafeAreaProvider>
-    );
-  } catch (error) {
-    console.error('Error in AppContent:', error);
-    return (
-      <SafeAreaProvider>
-        <PaperProvider theme={PaperDefaultTheme}>
-          <NavigationContainer theme={NavigationDefaultTheme}>
-            <StatusBar barStyle="dark-content" />
+  return (
+    <SafeAreaProvider>
+      <PaperProvider theme={paperTheme}>
+        <AuthProvider>
+          <NavigationContainer theme={navigationTheme} key={preferences.language.code}>
+            <StatusBar barStyle={state.isDark ? 'light-content' : 'dark-content'} />
+            <AppNavigator key={`nav-${preferences.language.code}`} />
             <Toast />
           </NavigationContainer>
-        </PaperProvider>
-      </SafeAreaProvider>
-    );
-  }
+        </AuthProvider>
+      </PaperProvider>
+    </SafeAreaProvider>
+  );
 }
 
 function App() {
-  console.log('App component rendering...');
-
   useEffect(() => {
-    console.log('App useEffect running...');
     // Set up network monitoring for development
-    try {
-      setupNetworkMonitor();
-      console.log('Network monitor setup complete');
-    } catch (error) {
-      console.error('Error setting up network monitor:', error);
-    }
+    setupNetworkMonitor();
   }, []);
 
   return (
     <ThemeProvider>
       <PreferencesProvider>
-        <AppContent />
+        <RTLProvider>
+          <AppContent />
+        </RTLProvider>
       </PreferencesProvider>
     </ThemeProvider>
   );

@@ -17,9 +17,10 @@ import Toast from 'react-native-toast-message';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../store/ThemeContext';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
-import { useTranslation } from '../../utils/translations';
 import { ValidationUtils } from '../../utils/validation';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTranslation } from '../../utils/translations';
+import { useRTL } from '../../store/RTLContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -42,6 +43,7 @@ const LoginScreen: React.FC = () => {
   const { state: themeState } = useTheme();
   const theme = themeState.theme;
   const { t } = useTranslation();
+  const { isRTL } = useRTL();
   
   // Handle email verification success
   useEffect(() => {
@@ -49,8 +51,8 @@ const LoginScreen: React.FC = () => {
     if (params?.emailVerified) {
       Toast.show({
         type: 'success',
-        text1: t('emailVerified'),
-        text2: t('emailVerifiedMessage'),
+        text1: t('email') + ' ' + t('confirm'),
+        text2: t('login'),
       });
       // Pre-fill email if available
       if (params.email) {
@@ -70,7 +72,7 @@ const LoginScreen: React.FC = () => {
       if (firstError) {
         Toast.show({
           type: 'error',
-          text1: t('validationError'),
+          text1: t('error'),
           text2: firstError,
           position: 'bottom'
         });
@@ -98,8 +100,8 @@ const handleLogin = async () => {
   if (!email || !password) {
     Toast.show({
       type: 'error',
-      text1: t('validationError'),
-      text2: t('pleaseFillAllFields'),
+      text1: t('error'),
+      text2: t('email') + ' ' + t('password') + ' ' + t('confirm'),
     });
     return;
   }
@@ -116,8 +118,8 @@ const handleLogin = async () => {
       
       Toast.show({
         type: 'info',
-        text1: t('emailVerificationRequired'),
-        text2: t('redirectingToVerification'),
+        text1: t('email') + ' ' + t('confirm'),
+        text2: t('continue'),
       });
       
       return;
@@ -132,16 +134,16 @@ const handleLogin = async () => {
       
       Toast.show({
         type: 'success',
-        text1: t('loginSuccessful'),
-        text2: t('welcomeBackMessage'),
+        text1: t('login') + ' ' + t('success'),
+        text2: t('welcome'),
       });
    } else {
     console.log('LoginScreen: User needs PIN setup, navigating to PinSetup');
     
     Toast.show({
       type: 'info',
-      text1: t('securitySetup'),
-      text2: t('setupPinMessage'),
+      text1: t('settings'),
+      text2: t('continue'),
     });
     
     // Use reset to clear the navigation stack and replace with PinSetup
@@ -157,8 +159,8 @@ const handleLogin = async () => {
     console.error('LoginScreen: Login failed:', error);
     Toast.show({
       type: 'error',
-      text1: t('loginFailed'),
-      text2: error.response?.data?.message || error.message || 'Please try again',
+      text1: t('login') + ' ' + t('error'),
+      text2: error.response?.data?.message || error.message || t('tryAgain'),
     });
     
   } finally {
@@ -169,8 +171,8 @@ const handleLogin = async () => {
   const handleForgotPassword = () => {
     Toast.show({
       type: 'info',
-      text1: t('resetPassword'),
-      text2: t('resetPasswordMessage'),
+      text1: t('forgotPassword'),
+      text2: t('continue'),
       position: 'bottom'
     });
   };
@@ -184,7 +186,6 @@ const handleLogin = async () => {
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
-      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     keyboardView: {
       flex: 1,
@@ -245,12 +246,10 @@ const handleLogin = async () => {
       fontWeight: '600',
       color: theme.colors.onBackground,
       marginBottom: 8,
-      marginLeft: rtlStyles?.marginStart.marginLeft || 4,
-      marginRight: rtlStyles?.marginStart.marginRight || 0,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
+      marginLeft: 4,
     },
     inputWrapper: {
-      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       alignItems: 'center',
       borderWidth: 2,
       borderColor: theme.colors.outline,
@@ -274,15 +273,13 @@ const handleLogin = async () => {
     },
     inputIcon: {
       fontSize: 20,
-      marginRight: rtlStyles?.marginEnd.marginRight || 12,
-      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
+      marginRight: 12,
     },
     input: {
       flex: 1,
       fontSize: 16,
       color: theme.colors.onSurface,
       paddingVertical: 12,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     eyeButton: {
       padding: 8,
@@ -291,7 +288,7 @@ const handleLogin = async () => {
       fontSize: 18,
     },
     forgotPassword: {
-      alignSelf: (rtlStyles?.alignItemsEnd.alignItems as 'flex-start' | 'flex-end') || 'flex-end',
+      alignSelf: 'flex-end',
       marginTop: -8,
       marginBottom: 24,
       paddingVertical: 8,
@@ -301,13 +298,12 @@ const handleLogin = async () => {
       fontSize: 14,
       color: theme.colors.primary,
       fontWeight: '600',
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     loginButton: {
       backgroundColor: theme.colors.primary,
       borderRadius: 16,
       paddingVertical: 16,
-      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       shadowColor: theme.colors.primary,
@@ -325,8 +321,7 @@ const handleLogin = async () => {
       color: theme.colors.onPrimary,
       fontSize: 16,
       fontWeight: 'bold',
-      marginRight: rtlStyles?.marginEnd.marginRight || 8,
-      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
+      marginRight: 8,
     },
     buttonArrow: {
       color: theme.colors.onPrimary,
@@ -334,7 +329,7 @@ const handleLogin = async () => {
       fontWeight: 'bold',
     },
     divider: {
-      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       alignItems: 'center',
       marginVertical: 24,
     },
@@ -352,7 +347,7 @@ const handleLogin = async () => {
       opacity: 0.7,
     },
     biometricButton: {
-      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: 2,
@@ -363,8 +358,7 @@ const handleLogin = async () => {
     },
     biometricIcon: {
       fontSize: 20,
-      marginRight: rtlStyles?.marginEnd.marginRight || 8,
-      marginLeft: rtlStyles?.marginEnd.marginLeft || 0,
+      marginRight: 8,
     },
     biometricText: {
       color: theme.colors.primary,
@@ -372,7 +366,7 @@ const handleLogin = async () => {
       fontWeight: '600',
     },
     footer: {
-      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 'auto',
@@ -396,9 +390,7 @@ const handleLogin = async () => {
       color: theme.colors.error,
       fontSize: 12,
       marginTop: 4,
-      marginLeft: rtlStyles?.marginStart.marginLeft || 16,
-      marginRight: rtlStyles?.marginStart.marginRight || 0,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
+      marginLeft: 16,
     },
   }));
 
@@ -419,18 +411,18 @@ const handleLogin = async () => {
                 <Text style={styles.logoText}>🏞️</Text>
               </View>
             </View>
-            <Text style={styles.title}>{t('welcomeBack')}</Text>
-            <Text style={styles.subtitle}>{t('signInSubtitle')}</Text>
+            <Text style={styles.title}>{t('welcome')}</Text>
+            <Text style={styles.subtitle}>{t('login')}</Text>
           </View>
 
           <View style={styles.formSection}>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('emailAddress')}</Text>
+              <Text style={styles.inputLabel}>{t('email')}</Text>
               <View style={[styles.inputWrapper, emailFocused && styles.inputFocused, errors.email && styles.inputError]}>
                 <Text style={styles.inputIcon}>📧</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder={t('enterEmail')}
+                  placeholder={t('email')}
                   placeholderTextColor={theme.colors.outline}
                   value={email}
                   onChangeText={(value) => handleInputChange('email', value)}
@@ -450,7 +442,7 @@ const handleLogin = async () => {
                 <Text style={styles.inputIcon}>🔐</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder={t('enterPassword')}
+                  placeholder={t('password')}
                   placeholderTextColor={theme.colors.outline}
                   value={password}
                   onChangeText={(value) => handleInputChange('password', value)}
@@ -480,14 +472,14 @@ const handleLogin = async () => {
               activeOpacity={0.8}
             >
               <Text style={styles.loginButtonText}>
-                {loading ? t('signingIn') : t('signIn')}
+                {loading ? t('loading') : t('login')}
               </Text>
-              {!loading && <Text style={styles.buttonArrow}>→</Text>}
+              {!loading && <Text style={styles.buttonArrow}>{isRTL ? '←' : '→'}</Text>}
             </TouchableOpacity>
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('or')}</Text>
+              <Text style={styles.dividerText}>OR</Text>
               <View style={styles.dividerLine} />
             </View>
 

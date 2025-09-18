@@ -17,6 +17,7 @@ import { useTheme } from '../store/ThemeContext';
 import { useThemedStyles } from '../hooks/useThemedStyles';
 import { useTranslation } from '../utils/translations';
 import { usePreferences } from '../store/PreferencesContext';
+import { useRTL } from '../store/RTLContext';
 import { apiService } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -50,6 +51,7 @@ const CountryLanguageScreen: React.FC = () => {
   const theme = themeState.theme;
   const { t } = useTranslation();
   const { setCountry, setLanguage } = usePreferences();
+  const { isRTL, languageCode } = useRTL();
 
   const [countries, setCountries] = useState<Country[]>([]);
   const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
@@ -63,11 +65,10 @@ const CountryLanguageScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
-  const styles = useThemedStyles((theme: any, rtlStyles) => StyleSheet.create({
+  const styles = useThemedStyles((theme: any, rtlStyles?: any) => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
-      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     content: {
       flex: 1,
@@ -88,7 +89,7 @@ const CountryLanguageScreen: React.FC = () => {
     subtitle: {
       fontSize: 16,
       color: theme.colors.onSurface,
-      textAlign: 'center',
+      textAlign: (rtlStyles?.textAlign?.textAlign as any) || 'center',
       opacity: 0.8,
       lineHeight: 22,
     },
@@ -100,7 +101,7 @@ const CountryLanguageScreen: React.FC = () => {
       fontWeight: '600',
       color: theme.colors.onSurface,
       marginBottom: 16,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
+      textAlign: (rtlStyles?.textAlign?.textAlign as any) || 'left',
     },
     countrySelector: {
       backgroundColor: theme.colors.surface,
@@ -112,12 +113,10 @@ const CountryLanguageScreen: React.FC = () => {
     countryText: {
       fontSize: 16,
       color: theme.colors.onSurface,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     placeholderText: {
       fontSize: 16,
       color: theme.colors.onSurfaceVariant,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     languageSelector: {
       backgroundColor: theme.colors.surface,
@@ -129,7 +128,6 @@ const CountryLanguageScreen: React.FC = () => {
     languageText: {
       fontSize: 16,
       color: theme.colors.onSurface,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     languageItem: {
       padding: 16,
@@ -143,13 +141,11 @@ const CountryLanguageScreen: React.FC = () => {
       fontSize: 16,
       color: theme.colors.onSurface,
       fontWeight: '500',
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     languageNative: {
       fontSize: 14,
       color: theme.colors.onSurfaceVariant,
       marginTop: 2,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     selectedLanguage: {
       backgroundColor: theme.colors.primaryContainer,
@@ -205,10 +201,9 @@ const CountryLanguageScreen: React.FC = () => {
     modalContainer: {
       flex: 1,
       backgroundColor: theme.colors.background,
-      direction: (rtlStyles?.container.direction as 'rtl' | 'ltr') || 'ltr',
     },
     modalHeader: {
-      flexDirection: (rtlStyles?.row.flexDirection as 'row' | 'row-reverse') || 'row',
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: 20,
@@ -219,7 +214,6 @@ const CountryLanguageScreen: React.FC = () => {
       fontSize: 20,
       fontWeight: '600',
       color: theme.colors.onSurface,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     closeButton: {
       padding: 8,
@@ -238,7 +232,6 @@ const CountryLanguageScreen: React.FC = () => {
       borderColor: theme.colors.outline,
       fontSize: 16,
       color: theme.colors.onSurface,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     countryItem: {
       padding: 16,
@@ -248,7 +241,6 @@ const CountryLanguageScreen: React.FC = () => {
     countryItemText: {
       fontSize: 16,
       color: theme.colors.onSurface,
-      textAlign: (rtlStyles?.textAlign.textAlign as 'left' | 'right') || 'left',
     },
     loadingContainer: {
       flex: 1,

@@ -11,7 +11,9 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
 import { useTheme } from '../store/ThemeContext';
+import { useRTL } from '../store/RTLContext';
 import { useThemedStyles } from '../hooks/useThemedStyles';
+import { getFlexDirection, getTextAlign } from '../utils/rtl';
 
 const { width } = Dimensions.get('window');
 
@@ -19,8 +21,9 @@ const DashboardScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
   const { state } = useTheme();
+  const { isRTL, languageCode } = useRTL();
 
-  const styles = useThemedStyles((theme) => StyleSheet.create({
+  const styles = useThemedStyles((theme, rtlStyles) => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
@@ -37,7 +40,7 @@ const DashboardScreen: React.FC = () => {
       marginBottom: 20,
     },
     userInfo: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       alignItems: 'center',
       marginBottom: 15,
     },
@@ -89,9 +92,10 @@ const DashboardScreen: React.FC = () => {
       fontWeight: 'bold',
       color: theme.colors.onBackground,
       marginBottom: 15,
+      textAlign: (rtlStyles?.textAlign?.textAlign as any) || 'left',
     },
     statsContainer: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       justifyContent: 'space-between',
     },
     statCard: {
@@ -136,7 +140,7 @@ const DashboardScreen: React.FC = () => {
       marginBottom: 30,
     },
     actionsGrid: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
     },
@@ -183,7 +187,7 @@ const DashboardScreen: React.FC = () => {
       marginBottom: 30,
     },
     sectionHeader: {
-      flexDirection: 'row',
+      flexDirection: (rtlStyles?.row?.flexDirection as any) || 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 15,
